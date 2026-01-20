@@ -99,7 +99,11 @@ cat home-mixer/params.rs
 
 1. **Read the [Posting Strategy Guide](./docs/POSTING_STRATEGY.md)** - Actionable tips based on the algorithm
 2. **Use the [Score Calculator](./tools/score-calculator.html)** - Predict how your content will rank
-3. **Check the [Twitter Thread](./docs/TWITTER_THREAD.md)** - Share this knowledge with your audience
+3. **Try the [Post Analyzer](./tools/post-analyzer.html)** - Analyze your post before publishing
+4. **Explore [SimClusters](./tools/simclusters-explorer.html)** - Understand niche-based distribution
+5. **See the [Pipeline Visualization](./tools/pipeline-visualization.html)** - Interactive algorithm flow
+6. **Check the [Twitter Thread](./docs/TWITTER_THREAD.md)** - Share this knowledge with your audience
+
 
 ---
 

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Analyzer - X Algorithm</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00d4aa, #1da1f2);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1da1f2;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            color: #e0e0e0;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        textarea::placeholder {
+            color: #666;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #1da1f2;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .char-count.warning {
+            color: #feca57;
+        }
+
+        .char-count.danger {
+            color: #f44336;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover {
+            background: rgba(29, 161, 242, 0.1);
+        }
+
+        .option.selected {
+            background: rgba(29, 161, 242, 0.15);
+            border-color: #1da1f2;
+        }
+
+        .option input {
+            display: none;
+        }
+
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .option.selected .option-checkbox {
+            background: #1da1f2;
+            border-color: #1da1f2;
+        }
+
+        .option.selected .option-checkbox::after {
+            content: '✓';
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1da1f2, #00d4aa);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(29, 161, 242, 0.3);
+        }
+
+        .results {
+            display: none;
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#1da1f2 0deg, #1da1f2 var(--score-deg), #333 var(--score-deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #1a1a2e;
+            position: absolute;
+        }
+
+        .score-number {
+            position: relative;
+            z-index: 1;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1da1f2;
+        }
+
+        .score-label {
+            text-align: center;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .grade {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .grade.excellent {
+            background: rgba(0, 212, 170, 0.2);
+            color: #00d4aa;
+        }
+
+        .grade.good {
+            background: rgba(29, 161, 242, 0.2);
+            color: #1da1f2;
+        }
+
+        .grade.average {
+            background: rgba(254, 202, 87, 0.2);
+            color: #feca57;
+        }
+
+        .grade.poor {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .analysis-section {
+            margin-top: 20px;
+        }
+
+        .analysis-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .analysis-item-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .analysis-item-value {
+            font-weight: bold;
+        }
+
+        .analysis-item-value.positive {
+            color: #00d4aa;
+        }
+
+        .analysis-item-value.negative {
+            color: #f44336;
+        }
+
+        .analysis-item-value.neutral {
+            color: #888;
+        }
+
+        .recommendations {
+            margin-top: 20px;
+        }
+
+        .recommendation {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(29, 161, 242, 0.1);
+            border-left: 3px solid #1da1f2;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-icon {
+            font-size: 1.2rem;
+        }
+
+        .recommendation-text {
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+        }
+
+        footer a {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Post Analyzer</h1>
+            <p class="subtitle">Analyze your post before publishing to predict algorithmic performance</p>
+        </header>
+
+        <div class="card">
+            <div class="card-title">✍️ Your Post</div>
+            <textarea id="postContent"
+                placeholder="Paste or type your post here...
+
+Example: 'I just read the entire X algorithm source code. Here's the #1 insight: Replies are worth 27x more than likes. If you want reach, create content that sparks conversations.'"
+                oninput="updateCharCount()"></textarea>
+            <div class="char-count" id="charCount">0 / 280 characters</div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📎 Content Type</div>
+            <div class="options-grid" id="contentOptions">
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="hasLink">
+                    <div class="option-checkbox"></div>
+                    <span>🔗 Contains Link</span>
+                </label>
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="hasImage">
+                    <div class="option-checkbox"></div>
+                    <span>🖼️ Has Image</span>
+                </label>
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="hasVideo">
+                    <div class="option-checkbox"></div>
+                    <span>🎬 Has Video</span>
+                </label>
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="isThread">
+                    <div class="option-checkbox"></div>
+                    <span>🧵 Is Thread</span>
+                </label>
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="hasQuestion">
+                    <div class="option-checkbox"></div>
+                    <span>❓ Asks Question</span>
+                </label>
+                <label class="option" onclick="toggleOption(this)">
+                    <input type="checkbox" id="hasCTA">
+                    <div class="option-checkbox"></div>
+                    <span>📢 Has CTA</span>
+                </label>
+            </div>
+        </div>
+
+        <button onclick="analyzePost()">🔍 Analyze Post</button>
+
+        <div class="results card" id="results">
+            <div style="display: flex; gap: 40px; flex-wrap: wrap; justify-content: center;">
+                <div>
+                    <div class="score-circle" id="scoreCircle">
+                        <span class="score-number" id="scoreNumber">0</span>
+                    </div>
+                    <div class="score-label">Predicted Reach Score</div>
+                </div>
+            </div>
+
+            <div class="grade" id="gradeBox">Loading...</div>
+
+            <div class="analysis-section">
+                <div class="analysis-title">📊 Score Breakdown</div>
+                <div id="breakdown"></div>
+            </div>
+
+            <div class="recommendations">
+                <div class="analysis-title">💡 Recommendations</div>
+                <div id="recommendationsList"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Part of the <a href="https://github.com/mangeshraut712/x-algorithm" target="_blank">X Algorithm</a>
+                toolkit</p>
+            <p style="margin-top: 10px;">
+                <a href="./score-calculator.html">Score Calculator</a> •
+                <a href="./simclusters-explorer.html">SimClusters Explorer</a> •
+                <a href="./pipeline-visualization.html">Pipeline Visualization</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function updateCharCount() {
+            const text = document.getElementById('postContent').value;
+            const count = text.length;
+            const countEl = document.getElementById('charCount');
+
+            countEl.textContent = `${count} / 280 characters`;
+            countEl.className = 'char-count';
+
+            if (count > 280) {
+                countEl.className = 'char-count danger';
+            } else if (count > 250) {
+                countEl.className = 'char-count warning';
+            }
+        }
+
+        function toggleOption(element) {
+            element.classList.toggle('selected');
+            const checkbox = element.querySelector('input');
+            checkbox.checked = !checkbox.checked;
+        }
+
+        function analyzePost() {
+            const text = document.getElementById('postContent').value;
+            const hasLink = document.getElementById('hasLink').checked;
+            const hasImage = document.getElementById('hasImage').checked;
+            const hasVideo = document.getElementById('hasVideo').checked;
+            const isThread = document.getElementById('isThread').checked;
+            const hasQuestion = document.getElementById('hasQuestion').checked;
+            const hasCTA = document.getElementById('hasCTA').checked;
+
+            // Analyze text
+            const hasHashtags = (text.match(/#\w+/g) || []).length;
+            const hasMentions = (text.match(/@\w+/g) || []).length;
+            const wordCount = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(text);
+            const hasNumbers = /\d+/.test(text);
+            const isControversial = /\b(wrong|disagree|unpopular|hot take|controversial)\b/i.test(text);
+            const isQuestion = text.includes('?') || hasQuestion;
+
+            // Calculate score components
+            let score = 50; // Base score
+
+            // Text quality
+            if (wordCount >= 10 && wordCount <= 50) score += 10;
+            if (wordCount > 100) score -= 5;
+            if (hasEmoji) score += 5;
+            if (isQuestion) score += 15; // Questions drive replies
+            if (isControversial) score += 10; // Controversial content gets engagement
+
+            // Media
+            if (hasVideo) score += 20;
+            if (hasImage) score += 10;
+            if (isThread) score += 15;
+
+            // Negative factors
+            if (hasLink) score -= 25; // Link penalty
+            if (hasHashtags > 3) score -= 10; // Too many hashtags
+            if (hasMentions > 3) score -= 5; // Too many mentions
+            if (text.length < 20) score -= 15; // Too short
+            if (text.length > 280) score -= 20; // Over limit
+
+            // CTA
+            if (hasCTA) score += 5;
+
+            // Clamp score
+            score = Math.max(0, Math.min(100, score));
+
+            // Update UI
+            document.getElementById('results').classList.add('visible');
+            document.getElementById('scoreNumber').textContent = score;
+            document.getElementById('scoreCircle').style.setProperty('--score-deg', `${score * 3.6}deg`);
+
+            // Grade
+            let grade, gradeClass;
+            if (score >= 80) {
+                grade = '🚀 Excellent - High viral potential!';
+                gradeClass = 'excellent';
+            } else if (score >= 60) {
+                grade = '✅ Good - Solid engagement expected';
+                gradeClass = 'good';
+            } else if (score >= 40) {
+                grade = '🔶 Average - Room for improvement';
+                gradeClass = 'average';
+            } else {
+                grade = '⚠️ Poor - Consider revising';
+                gradeClass = 'poor';
+            }
+
+            const gradeBox = document.getElementById('gradeBox');
+            gradeBox.textContent = grade;
+            gradeBox.className = 'grade ' + gradeClass;
+
+            // Breakdown
+            const breakdownItems = [
+                { label: '📝 Text Quality', value: wordCount >= 10 && wordCount <= 50 ? '+10' : (wordCount > 100 ? '-5' : '0'), positive: wordCount >= 10 && wordCount <= 50 },
+                { label: '❓ Question', value: isQuestion ? '+15' : '0', positive: isQuestion },
+                { label: '🎬 Video', value: hasVideo ? '+20' : '0', positive: hasVideo },
+                { label: '🖼️ Image', value: hasImage ? '+10' : '0', positive: hasImage },
+                { label: '🧵 Thread', value: isThread ? '+15' : '0', positive: isThread },
+                { label: '🔗 Link Penalty', value: hasLink ? '-25' : '0', positive: false, negative: hasLink },
+                { label: '#️⃣ Hashtags', value: hasHashtags > 3 ? '-10' : '0', positive: false, negative: hasHashtags > 3 },
+            ];
+
+            document.getElementById('breakdown').innerHTML = breakdownItems.map(item => `
+                <div class="analysis-item">
+                    <span class="analysis-item-label">${item.label}</span>
+                    <span class="analysis-item-value ${item.positive ? 'positive' : (item.negative ? 'negative' : 'neutral')}">${item.value}</span>
+                </div>
+            `).join('');
+
+            // Recommendations
+            const recommendations = [];
+
+            if (hasLink) {
+                recommendations.push({ icon: '🔗', text: 'Remove the link from the main post. Put it in your bio or first reply instead.' });
+            }
+            if (!isQuestion) {
+                recommendations.push({ icon: '❓', text: 'Add a question to encourage replies. Replies have 27x more weight than likes!' });
+            }
+            if (!hasVideo && !hasImage) {
+                recommendations.push({ icon: '📸', text: 'Add media (image or video) to stop the scroll and increase dwell time.' });
+            }
+            if (wordCount < 20) {
+                recommendations.push({ icon: '📝', text: 'Your post is quite short. Consider adding more context for better engagement.' });
+            }
+            if (hasHashtags > 2) {
+                recommendations.push({ icon: '#️⃣', text: 'Consider using fewer hashtags (1-2 max). Too many can look spammy.' });
+            }
+            if (!isThread && text.length > 200) {
+                recommendations.push({ icon: '🧵', text: 'This could work better as a thread to increase dwell time.' });
+            }
+            if (score >= 70) {
+                recommendations.push({ icon: '🎯', text: 'Great post! Remember to reply to all comments within the first hour.' });
+            }
+
+            document.getElementById('recommendationsList').innerHTML = recommendations.map(rec => `
+                <div class="recommendation">
+                    <span class="recommendation-icon">${rec.icon}</span>
+                    <span class="recommendation-text">${rec.text}</span>
+                </div>
+            `).join('');
+
+            // Scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
