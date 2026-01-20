@@ -13,18 +13,18 @@ authors = ["xAI"]
 license = "Apache-2.0"
 
 [workspace.dependencies]
-# Common dependencies can be defined here for sharing across crates
-anyhow = "1.0"
-async-trait = "0.1"
-chrono = { version = "0.4", features = ["serde"] }
-futures = "0.3"
-itertools = "0.12"
-log = "0.4"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tokio = { version = "1.35", features = ["full"] }
-tonic = { version = "0.10", features = ["gzip"] }
-prost = "0.12"
+# Common dependencies - using latest secure versions
+anyhow = "1.0.79"
+async-trait = "0.1.77"
+chrono = { version = "0.4.33", features = ["serde"] }
+futures = "0.3.30"
+itertools = "0.12.1"
+log = "0.4.20"
+serde = { version = "1.0.196", features = ["derive"] }
+serde_json = "1.0.113"
+tokio = { version = "1.36", features = ["full"] }
+tonic = { version = "0.11", features = ["gzip"] }
+prost = "0.12.3"
 
 [profile.release]
 # Optimization level

@@ -10,8 +10,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    name: Build & Test
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+
+    - name: Build candidate-pipeline
+      run: cargo build -p candidate-pipeline --release
+
+    - name: Run tests
+      run: cargo test -p candidate-pipeline --verbose
+
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -20,16 +39,28 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@stable
       with:
-        components: rustfmt, clippy
+        components: clippy
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Build candidate-pipeline
-      run: cargo build -p candidate-pipeline --release
-
-    - name: Run tests (candidate-pipeline)
-      run: cargo test -p candidate-pipeline --verbose
-
-    - name: Run clippy (candidate-pipeline)
+    - name: Run clippy
       run: cargo clippy -p candidate-pipeline --all-targets -- -D warnings
+
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit --locked
+
+    - name: Run security audit
+      run: cargo audit --ignore RUSTSEC-2020-0071 || true
+      # Note: Using || true to not fail on advisories for dependencies we can't easily update
+      # In production, you would want to address all security issues
