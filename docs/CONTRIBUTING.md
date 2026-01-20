@@ -1,290 +1,275 @@
 # Contributing to X Algorithm
 
-Thank you for your interest in contributing to the X Algorithm project! This document provides guidelines and information for contributors.
+First off, thank you for considering contributing to this project! 🎉
+
+This project aims to make the X (Twitter) algorithm accessible, understandable, and useful for everyone.
 
 ## 📋 Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [How to Contribute](#how-to-contribute)
+- [How Can I Contribute?](#how-can-i-contribute)
 - [Development Setup](#development-setup)
-- [Submitting Changes](#submitting-changes)
-- [Code Style](#code-style)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Reporting Issues](#reporting-issues)
+- [Pull Request Process](#pull-request-process)
+- [Style Guidelines](#style-guidelines)
+- [Recognition](#recognition)
 
-## 🤝 Code of Conduct
+---
 
-This project follows a code of conduct to ensure a welcoming environment for all contributors. By participating, you agree to:
+## 📜 Code of Conduct
 
-- Be respectful and inclusive
-- Focus on constructive feedback
-- Accept responsibility for mistakes
-- Show empathy towards other contributors
-- Help create a positive community
+This project adheres to the [Contributor Covenant Code of Conduct](../CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
-## 🚀 Getting Started
+---
 
-### Prerequisites
+## 🤝 How Can I Contribute?
 
-- **Rust**: 1.70+ ([install](https://rustup.rs/))
-- **Python**: 3.8+ ([install](https://python.org))
-- **Git**: Latest version
-- **Cargo**: Included with Rust
+### 🐛 Reporting Bugs
 
-### Quick Setup
+Before creating bug reports, please check existing issues to avoid duplicates.
 
-```bash
-# Fork and clone the repository
-git clone https://github.com/your-username/x-algorithm.git
-cd x-algorithm
+When creating a bug report, include:
+- **Clear title** describing the issue
+- **Steps to reproduce** the behavior
+- **Expected behavior** vs actual behavior
+- **Environment details** (OS, Rust version, etc.)
+- **Code snippets** if applicable
 
-# Set up upstream remote
-git remote add upstream https://github.com/mangeshraut712/x-algorithm.git
+### 💡 Suggesting Enhancements
 
-# Install dependencies and build
-cd home-mixer && cargo build --release
-```
+Enhancement suggestions are welcome! Please:
+- Use a **clear, descriptive title**
+- Provide a **detailed description** of the proposed feature
+- Explain **why this would be useful**
+- Include **examples** if possible
 
-## 💡 How to Contribute
+### 📝 Documentation Improvements
 
-### Types of Contributions
+Documentation is crucial. You can help by:
+- Fixing typos and grammar
+- Adding examples and clarifications
+- Translating documentation
+- Creating tutorials or guides
 
-- 🐛 **Bug fixes** - Fix existing issues
-- ✨ **Features** - Add new functionality
-- 📚 **Documentation** - Improve docs or add examples
-- 🧪 **Tests** - Add or improve test coverage
-- 🎨 **UI/UX** - Improve user interfaces
-- 🔧 **Tools** - Development tools and scripts
+### 💻 Code Contributions
 
-### Finding Issues to Work On
+#### Good First Issues
 
-1. Check [open issues](https://github.com/mangeshraut712/x-algorithm/issues) labeled `good first issue`
-2. Look for issues labeled `help wanted`
-3. Check the [project board](https://github.com/mangeshraut712/x-algorithm/projects) for planned work
+Look for issues labeled `good first issue` - these are great for newcomers!
+
+#### Areas We Need Help
+
+| Area | Description | Difficulty |
+|------|-------------|------------|
+| **Documentation** | Improve README, add examples | Easy |
+| **Tests** | Add unit tests, integration tests | Medium |
+| **Visualizations** | Create algorithm visualizations | Medium |
+| **Performance** | Optimize scoring algorithms | Hard |
+| **New Features** | Implement missing components | Hard |
+
+---
 
 ## 🛠️ Development Setup
 
-### Rust Development
+### Prerequisites
+
+- Rust 1.70+ ([install](https://rustup.rs/))
+- Git
+
+### Setup Steps
 
 ```bash
-# Build all crates
-cargo build --workspace
+# Clone the repository
+git clone https://github.com/mangeshraut712/x-algorithm.git
+cd x-algorithm
+
+# Build the project
+cargo build
 
 # Run tests
-cargo test --workspace
+cargo test
 
-# Run with optimizations
-cargo build --workspace --release
+# Run clippy (linting)
+cargo clippy
 
-# Check code quality
-cargo clippy --workspace
-cargo fmt --workspace --check
+# Format code
+cargo fmt
 ```
 
-### Python Development (Phoenix)
+### Project Structure
 
-```bash
-cd phoenix
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run tests
-python -m pytest
-
-# Run model training/inference
-python run_retrieval.py
+```
+x-algorithm/
+├── candidate-pipeline/   # Core framework (start here!)
+├── home-mixer/           # Timeline service
+├── thunder/              # Post store
+├── tools/                # Utilities and calculators
+└── docs/                 # Documentation
 ```
 
-### Running the Full System
+### Which Crate to Work On?
+
+| Crate | Status | Best For |
+|-------|--------|----------|
+| `candidate-pipeline` | ✅ Fully Working | New contributors |
+| `home-mixer` | 🔧 In Progress | Experienced Rust devs |
+| `thunder` | 🔧 In Progress | Systems programming focus |
+
+---
+
+## 🔄 Pull Request Process
+
+### 1. Fork & Branch
 
 ```bash
-# Start all services
-docker-compose up -d
+# Fork the repo on GitHub, then:
+git clone https://github.com/YOUR_USERNAME/x-algorithm.git
+cd x-algorithm
 
-# Or run individual components
-./scripts/deploy.sh
-```
-
-## 📝 Submitting Changes
-
-### 1. Create a Branch
-
-```bash
-# Create and switch to a feature branch
+# Create a feature branch
 git checkout -b feature/your-feature-name
-
-# Or for bug fixes
-git checkout -b fix/issue-number-description
 ```
 
 ### 2. Make Changes
 
-- Follow the [code style guidelines](#code-style)
+- Write clean, documented code
 - Add tests for new functionality
-- Update documentation as needed
-- Ensure all tests pass
+- Update documentation if needed
 
-### 3. Commit Changes
-
-```bash
-# Stage your changes
-git add .
-
-# Commit with a clear message
-git commit -m "feat: add user clustering optimization
-
-- Implements k-means clustering for user segmentation
-- Reduces personalization latency by 40%
-- Adds comprehensive test coverage
-
-Closes #123"
-```
-
-### 4. Push and Create PR
-
-```bash
-# Push your branch
-git push origin feature/your-feature-name
-
-# Create a Pull Request on GitHub
-```
-
-### Pull Request Guidelines
-
-- **Title**: Use conventional commit format (e.g., "feat:", "fix:", "docs:")
-- **Description**: Explain what changes and why
-- **Screenshots**: Include for UI changes
-- **Tests**: Ensure CI passes
-- **Breaking Changes**: Clearly document any breaking changes
-
-## 🎨 Code Style
-
-### Rust Code Style
-
-- Follow the [official Rust style guide](https://doc.rust-lang.org/style-guide/)
-- Use `cargo fmt` to format code
-- Use `cargo clippy` for linting
-- Maximum line length: 100 characters
-
-### Python Code Style
-
-- Follow [PEP 8](https://pep8.org/)
-- Use [Black](https://black.readthedocs.io/) for formatting
-- Use [flake8](https://flake8.pycqa.org/) for linting
-
-### Commit Messages
-
-Use [conventional commits](https://conventionalcommits.org/):
-
-```
-type(scope): description
-
-[optional body]
-
-[optional footer]
-```
-
-Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `test`: Testing
-- `chore`: Maintenance
-
-## 🧪 Testing
-
-### Running Tests
+### 3. Test Your Changes
 
 ```bash
 # Run all tests
-cargo test --workspace
+cargo test
 
-# Run specific test
-cargo test test_name
+# Run clippy
+cargo clippy -- -D warnings
 
-# Run with coverage
-cargo tarpaulin --workspace
+# Format code
+cargo fmt
 ```
 
-### Writing Tests
+### 4. Commit
 
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+Use clear commit messages:
 
-    #[test]
-    fn test_feature() {
-        // Test implementation
-        assert_eq!(result, expected);
-    }
-}
+```
+feat: add new scoring algorithm for video content
+
+- Implement VQV (Video Quality View) scoring
+- Add tests for video duration threshold
+- Update documentation
 ```
 
-### Test Coverage
+Commit message prefixes:
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation
+- `test:` - Tests
+- `refactor:` - Code refactoring
+- `perf:` - Performance improvement
 
-- Aim for >80% code coverage
-- Test edge cases and error conditions
-- Include integration tests for complex features
+### 5. Push & Create PR
 
-## 📚 Documentation
+```bash
+git push origin feature/your-feature-name
+```
 
-### Code Documentation
+Then create a Pull Request on GitHub with:
+- Clear description of changes
+- Link to related issue (if any)
+- Screenshots (if UI changes)
+
+### 6. Review Process
+
+- Maintainers will review your PR
+- Address any feedback
+- Once approved, it will be merged!
+
+---
+
+## 📏 Style Guidelines
+
+### Rust Code Style
 
 ```rust
-/// Brief description of the function
+// Good: Clear, documented code
+/// Computes the weighted score for a candidate post.
 ///
 /// # Arguments
-/// * `param1` - Description of param1
-/// * `param2` - Description of param2
+/// * `candidate` - The post candidate to score
 ///
 /// # Returns
-/// Description of return value
-///
-/// # Examples
-/// ```
-/// let result = my_function(1, 2);
-/// assert_eq!(result, 3);
-/// ```
-pub fn my_function(param1: i32, param2: i32) -> i32 {
-    // implementation
+/// The weighted engagement score
+fn compute_weighted_score(candidate: &PostCandidate) -> f64 {
+    // Implementation
 }
+
+// Good: Meaningful variable names
+let reply_weight = 27.0;
+let profile_click_weight = 12.0;
+
+// Bad: Unclear names
+let w1 = 27.0;
+let w2 = 12.0;
 ```
 
-### Updating Documentation
+### Documentation Style
 
-- Update README.md for significant changes
-- Add examples for new features
-- Keep API documentation current
-- Update deployment guides as needed
+- Use clear, concise language
+- Include code examples
+- Explain the "why," not just the "what"
+- Keep README files updated
 
-## 🐛 Reporting Issues
+### Commit Style
 
-When reporting bugs, please include:
+- Use present tense ("add feature" not "added feature")
+- Use imperative mood ("move cursor" not "moves cursor")
+- Limit first line to 72 characters
+- Reference issues when applicable
 
-- **Clear title** describing the issue
-- **Steps to reproduce** the problem
-- **Expected vs actual behavior**
-- **Environment details** (OS, Rust/Python versions)
-- **Error messages** and stack traces
-- **Screenshots** if applicable
+---
 
-## 📞 Getting Help
+## 🏆 Recognition
 
-- **Discussions**: Use [GitHub Discussions](https://github.com/mangeshraut712/x-algorithm/discussions) for questions
-- **Issues**: Use [GitHub Issues](https://github.com/mangeshraut712/x-algorithm/issues) for bugs/features
-- **Documentation**: Check [docs/](docs/) first
+Contributors are recognized in multiple ways:
 
-## 🎉 Recognition
+### Contributors List
 
-Contributors will be recognized in:
-- Repository README
+All contributors are listed in our README and CONTRIBUTORS.md file.
+
+### Types of Contributions Recognized
+
+- 💻 Code
+- 📖 Documentation
+- 🐛 Bug reports
+- 💡 Ideas
+- 🎨 Design
+- 📢 Talks/Blog posts
+- 🔧 Tools
+
+### Hall of Fame
+
+Significant contributors may be featured in:
+- Project README
 - Release notes
-- Contributor acknowledgments
+- Social media shoutouts
 
-Thank you for contributing to X Algorithm! 🚀
+---
+
+## ❓ Questions?
+
+- Open a [Discussion](https://github.com/mangeshraut712/x-algorithm/discussions)
+- Check existing [Issues](https://github.com/mangeshraut712/x-algorithm/issues)
+- Read the [Documentation](./ARCHITECTURE.md)
+
+---
+
+## 📄 License
+
+By contributing, you agree that your contributions will be licensed under the Apache 2.0 License.
+
+---
+
+**Thank you for contributing! 🙏**
+
+Every contribution, no matter how small, makes this project better.

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Algorithm Score Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a2e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #00acee, #1da1f2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1da1f2;
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .weight-badge {
+            background: rgba(29, 161, 242, 0.2);
+            color: #1da1f2;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .weight-badge.negative {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .input-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #1da1f2;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(29, 161, 242, 0.4);
+        }
+
+        .input-value {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #1da1f2;
+            margin-top: 4px;
+        }
+
+        .score-display {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .score-value {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00acee, #1da1f2, #00d4aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-label {
+            font-size: 1rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .score-breakdown {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .breakdown-item {
+            text-align: center;
+        }
+
+        .breakdown-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .breakdown-value.positive {
+            color: #00d4aa;
+        }
+
+        .breakdown-value.negative {
+            color: #f44336;
+        }
+
+        .breakdown-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .tier-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .tier {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0.3;
+            transition: all 0.3s ease;
+        }
+
+        .tier.active {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .tier.viral {
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: #000;
+        }
+
+        .tier.trending {
+            background: linear-gradient(135deg, #1da1f2, #00d4aa);
+            color: #000;
+        }
+
+        .tier.good {
+            background: linear-gradient(135deg, #00d4aa, #48dbfb);
+            color: #000;
+        }
+
+        .tier.average {
+            background: #555;
+            color: #fff;
+        }
+
+        .tier.low {
+            background: #333;
+            color: #888;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            margin: 30px 0;
+        }
+
+        .tips {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .tip {
+            background: rgba(29, 161, 242, 0.1);
+            border: 1px solid rgba(29, 161, 242, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .tip-icon {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tip-text {
+            font-size: 0.85rem;
+            color: #999;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #1da1f2;
+            text-decoration: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #1da1f2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>𝕏 Algorithm Score Calculator</h1>
+            <p class="subtitle">Predict how the algorithm will rank your content based on engagement signals</p>
+        </header>
+
+        <div class="card">
+            <div class="card-title">📊 Predicted Engagement Probabilities</div>
+            <p style="color: #888; font-size: 0.85rem; margin-bottom: 20px;">
+                Estimate the probability (0-100%) that users will take each action on your post
+            </p>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>❤️ Like <span class="weight-badge">×1.0</span></label>
+                    <input type="range" id="like" min="0" max="100" value="30" oninput="calculate()">
+                    <div class="input-value"><span id="like-val">30</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>💬 Reply <span class="weight-badge">×27.0</span></label>
+                    <input type="range" id="reply" min="0" max="100" value="5" oninput="calculate()">
+                    <div class="input-value"><span id="reply-val">5</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>🔁 Retweet <span class="weight-badge">×1.0</span></label>
+                    <input type="range" id="retweet" min="0" max="100" value="10" oninput="calculate()">
+                    <div class="input-value"><span id="retweet-val">10</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>👤 Profile Click <span class="weight-badge">×12.0</span></label>
+                    <input type="range" id="profile" min="0" max="100" value="8" oninput="calculate()">
+                    <div class="input-value"><span id="profile-val">8</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>🔖 Bookmark <span class="weight-badge">×1.0</span></label>
+                    <input type="range" id="bookmark" min="0" max="100" value="3" oninput="calculate()">
+                    <div class="input-value"><span id="bookmark-val">3</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>📤 Share via DM <span class="weight-badge">×1.0</span></label>
+                    <input type="range" id="share" min="0" max="100" value="2" oninput="calculate()">
+                    <div class="input-value"><span id="share-val">2</span>%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🎬 Content Bonuses</div>
+            <div class="input-grid">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="hasVideo" onchange="calculate()">
+                    <label for="hasVideo">Has video (2+ seconds)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="hasThread" onchange="calculate()">
+                    <label for="hasThread">Is a thread (high dwell)</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="hasImage" onchange="calculate()">
+                    <label for="hasImage">Has expandable image</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">⚠️ Negative Signals (Danger Zone)</div>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>😴 Not Interested <span class="weight-badge negative">×-74.0</span></label>
+                    <input type="range" id="notInterested" min="0" max="20" value="0" oninput="calculate()">
+                    <div class="input-value"><span id="notInterested-val">0</span>%</div>
+                </div>
+
+                <div class="input-group">
+                    <label>🚫 Report <span class="weight-badge negative">×-369.0</span></label>
+                    <input type="range" id="report" min="0" max="5" value="0" oninput="calculate()">
+                    <div class="input-value"><span id="report-val">0</span>%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card score-display">
+            <div class="score-value" id="totalScore">2.31</div>
+            <div class="score-label">Weighted Engagement Score</div>
+
+            <div class="score-breakdown">
+                <div class="breakdown-item">
+                    <div class="breakdown-value positive" id="positiveScore">+2.31</div>
+                    <div class="breakdown-label">Positive Signals</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value negative" id="negativeScore">-0.00</div>
+                    <div class="breakdown-label">Negative Signals</div>
+                </div>
+            </div>
+
+            <div class="tier-indicator">
+                <div class="tier viral" id="tier-viral">🚀 VIRAL</div>
+                <div class="tier trending" id="tier-trending">📈 TRENDING</div>
+                <div class="tier good" id="tier-good">✅ GOOD</div>
+                <div class="tier average" id="tier-average">➖ AVERAGE</div>
+                <div class="tier low" id="tier-low">⬇️ LOW</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💡 Optimization Tips</div>
+            <div class="tips" id="tips">
+                <!-- Dynamic tips will appear here -->
+            </div>
+        </div>
+
+        <footer>
+            Based on the open-source <a href="https://github.com/mangeshraut712/x-algorithm" target="_blank">X
+                Algorithm</a> •
+            Made with ❤️ for the creator community
+        </footer>
+    </div>
+
+    <script>
+        const WEIGHTS = {
+            like: 1.0,
+            reply: 27.0,
+            retweet: 1.0,
+            profile: 12.0,
+            bookmark: 1.0,
+            share: 1.0,
+            vqv: 0.3,
+            notInterested: -74.0,
+            report: -369.0
+        };
+
+        function calculate() {
+            // Get values
+            const like = document.getElementById('like').value / 100;
+            const reply = document.getElementById('reply').value / 100;
+            const retweet = document.getElementById('retweet').value / 100;
+            const profile = document.getElementById('profile').value / 100;
+            const bookmark = document.getElementById('bookmark').value / 100;
+            const share = document.getElementById('share').value / 100;
+            const notInterested = document.getElementById('notInterested').value / 100;
+            const report = document.getElementById('report').value / 100;
+
+            const hasVideo = document.getElementById('hasVideo').checked;
+            const hasThread = document.getElementById('hasThread').checked;
+            const hasImage = document.getElementById('hasImage').checked;
+
+            // Update display values
+            document.getElementById('like-val').textContent = Math.round(like * 100);
+            document.getElementById('reply-val').textContent = Math.round(reply * 100);
+            document.getElementById('retweet-val').textContent = Math.round(retweet * 100);
+            document.getElementById('profile-val').textContent = Math.round(profile * 100);
+            document.getElementById('bookmark-val').textContent = Math.round(bookmark * 100);
+            document.getElementById('share-val').textContent = Math.round(share * 100);
+            document.getElementById('notInterested-val').textContent = Math.round(notInterested * 100);
+            document.getElementById('report-val').textContent = Math.round(report * 100);
+
+            // Calculate positive score
+            let positiveScore =
+                like * WEIGHTS.like +
+                reply * WEIGHTS.reply +
+                retweet * WEIGHTS.retweet +
+                profile * WEIGHTS.profile +
+                bookmark * WEIGHTS.bookmark +
+                share * WEIGHTS.share;
+
+            // Add bonuses
+            if (hasVideo) positiveScore *= 1.15;
+            if (hasThread) positiveScore *= 1.1;
+            if (hasImage) positiveScore *= 1.05;
+
+            // Calculate negative score
+            const negativeScore =
+                notInterested * WEIGHTS.notInterested +
+                report * WEIGHTS.report;
+
+            // Total score
+            const totalScore = Math.max(0, positiveScore + negativeScore);
+
+            // Update display
+            document.getElementById('totalScore').textContent = totalScore.toFixed(2);
+            document.getElementById('positiveScore').textContent = '+' + positiveScore.toFixed(2);
+            document.getElementById('negativeScore').textContent = negativeScore.toFixed(2);
+
+            // Update tier
+            updateTier(totalScore);
+
+            // Update tips
+            updateTips(like, reply, retweet, profile, notInterested, report, hasVideo);
+        }
+
+        function updateTier(score) {
+            const tiers = ['viral', 'trending', 'good', 'average', 'low'];
+            tiers.forEach(t => document.getElementById('tier-' + t).classList.remove('active'));
+
+            if (score >= 5) {
+                document.getElementById('tier-viral').classList.add('active');
+            } else if (score >= 3) {
+                document.getElementById('tier-trending').classList.add('active');
+            } else if (score >= 2) {
+                document.getElementById('tier-good').classList.add('active');
+            } else if (score >= 1) {
+                document.getElementById('tier-average').classList.add('active');
+            } else {
+                document.getElementById('tier-low').classList.add('active');
+            }
+        }
+
+        function updateTips(like, reply, retweet, profile, notInterested, report, hasVideo) {
+            const tips = [];
+
+            if (reply < 0.1) {
+                tips.push({
+                    icon: '💬',
+                    title: 'Boost Reply Rate',
+                    text: 'Replies have 27x weight! Ask questions or create discussion-worthy content.'
+                });
+            }
+
+            if (profile < 0.1) {
+                tips.push({
+                    icon: '👤',
+                    title: 'Drive Profile Clicks',
+                    text: 'Profile clicks (12x weight) signal genuine interest. Make people curious about you.'
+                });
+            }
+
+            if (!hasVideo) {
+                tips.push({
+                    icon: '🎬',
+                    title: 'Consider Video',
+                    text: 'Video content gets VQV bonus if watched 2+ seconds. Great for stopping the scroll.'
+                });
+            }
+
+            if (notInterested > 0.01) {
+                tips.push({
+                    icon: '⚠️',
+                    title: 'Reduce "Not Interested"',
+                    text: 'Even 1% not-interested rate severely hurts your score (-74 weight). Stay relevant to your niche.'
+                });
+            }
+
+            if (report > 0) {
+                tips.push({
+                    icon: '🚨',
+                    title: 'Critical: Reports Detected',
+                    text: 'Reports have -369 weight! Avoid controversial content that triggers reports.'
+                });
+            }
+
+            if (like > 0.3 && reply < 0.05) {
+                tips.push({
+                    icon: '🎯',
+                    title: 'Likes vs Replies',
+                    text: 'Your like rate is high but reply rate is low. Shift focus to conversation-worthy content.'
+                });
+            }
+
+            const tipsContainer = document.getElementById('tips');
+            tipsContainer.innerHTML = tips.map(tip => `
+                <div class="tip">
+                    <div class="tip-icon">${tip.icon}</div>
+                    <div class="tip-title">${tip.title}</div>
+                    <div class="tip-text">${tip.text}</div>
+                </div>
+            `).join('');
+        }
+
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+
+</html>

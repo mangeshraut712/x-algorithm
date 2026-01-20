@@ -1,121 +1,242 @@
-# X Algorithm
+# 𝕏 Algorithm
+
+<div align="center">
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org/)
 [![CI](https://github.com/mangeshraut712/x-algorithm/actions/workflows/rust-ci.yml/badge.svg)](https://github.com/mangeshraut712/x-algorithm/actions)
+[![Stars](https://img.shields.io/github/stars/mangeshraut712/x-algorithm?style=social)](https://github.com/mangeshraut712/x-algorithm/stargazers)
 
-**An open-source reference implementation of X's "For You" timeline recommendation algorithm** - featuring ML-based ranking, content safety filters, and performance optimizations.
+**The Open-Source Reference Implementation of X's "For You" Timeline Algorithm**
 
-> **Note**: This is an open-source adaptation of X's internal algorithm. Some components require internal infrastructure and are provided as reference implementations.
+[📊 Score Calculator](./tools/score-calculator.html) • [📖 Architecture](./docs/ARCHITECTURE.md) • [🎯 Posting Strategy](./docs/POSTING_STRATEGY.md) • [🤝 Contributing](./docs/CONTRIBUTING.md)
 
-## 🎯 Overview
+</div>
 
-This repository demonstrates the architecture and algorithms behind X's content ranking system.
+---
 
-### Core Components
+## 🎯 What This Is
 
-| Component | Description | Status |
-|-----------|-------------|--------|
-| **candidate-pipeline** | Generic framework for scoring/filtering pipelines | ✅ Complete |
-| **home-mixer** | Timeline ranking service (reference implementation) | 🔧 In Progress |
-| **thunder** | In-memory post store (reference implementation) | 🔧 In Progress |
+This repository contains a **reference implementation** of the recommendation algorithm that powers X's (formerly Twitter) "For You" timeline. It's designed to help creators, developers, and researchers understand exactly how content is ranked.
 
-## 🏗️ Architecture
+### What You'll Learn
+
+- **The exact scoring weights** used to rank posts
+- **How SimClusters work** for topic-based recommendations
+- **Why certain content performs better** than others
+- **How to optimize your content strategy** based on the algorithm
+
+---
+
+## 🔥 The Key Insight: Scoring Weights
+
+The algorithm predicts engagement probabilities and multiplies them by these weights:
+
+| Action | Weight | What This Means |
+|--------|--------|-----------------|
+| **💬 Reply** | **27.0** | 27x more valuable than a like |
+| **👤 Profile Click** | **12.0** | Shows genuine interest |
+| **❤️ Like** | 1.0 | Just the baseline |
+| **🔁 Retweet** | 1.0 | Standard amplification |
+| **🎬 Video View (VQV)** | 0.3 | Bonus if watched 2+ seconds |
+| **😴 Not Interested** | **-74.0** | ⚠️ Major penalty |
+| **🚫 Report** | **-369.0** | ☠️ Account killer |
+
+> **TL;DR**: One reply is worth 27 likes. Don't trigger "Not Interested" or you're dead.
+
+---
+
+## 📦 Repository Structure
 
 ```
-User Request → Home Mixer → [Sources → Hydrators → Filters → Scorers → Selection] → Feed
-                               ↓
-                     ┌─────────────────┐
-                     │ Phoenix Scorer  │  (ML-based ranking)
-                     │ Weighted Scorer │  (Feature-weighted ranking)
-                     └─────────────────┘
+x-algorithm/
+├── 📁 candidate-pipeline/     # ✅ Core Framework (Fully Working)
+│   ├── filter.rs              # Content filtering traits
+│   ├── scorer.rs              # Scoring algorithm traits  
+│   ├── selector.rs            # Ranking and selection
+│   └── candidate_pipeline.rs  # Pipeline orchestration
+│
+├── 📁 home-mixer/             # 🔧 Timeline Service
+│   ├── params.rs              # ⭐ THE SCORING WEIGHTS
+│   ├── scorers/               # Weighted scoring implementation
+│   ├── filters/               # Content safety filters
+│   └── personalization/       # SimClusters and user clustering
+│
+├── 📁 thunder/                # 🔧 In-Memory Post Store
+│
+├── 📁 tools/
+│   └── score-calculator.html  # 🧮 Interactive Score Calculator
+│
+└── 📁 docs/
+    ├── ARCHITECTURE.md        # 🏗️ System Architecture Deep Dive
+    ├── POSTING_STRATEGY.md    # 🎯 Content Optimization Guide
+    ├── TWITTER_THREAD.md      # 🐦 Ready-to-Post Thread
+    └── CONTRIBUTING.md        # 🤝 How to Contribute
 ```
+
+---
 
 ## 🚀 Quick Start
+
+### For Developers
 
 ```bash
 # Clone the repository
 git clone https://github.com/mangeshraut712/x-algorithm.git
 cd x-algorithm
 
-# Build the candidate-pipeline crate (fully functional)
-cargo build -p candidate-pipeline --release
+# Build the working components
+cargo build -p candidate-pipeline
 
 # Run tests
 cargo test -p candidate-pipeline
+
+# Explore the scoring weights
+cat home-mixer/params.rs
 ```
 
-## 📦 Project Structure
+### For Creators
 
-```
-x-algorithm/
-├── candidate-pipeline/   # Core framework for candidate scoring
-│   ├── filter.rs         # Filter trait and implementations
-│   ├── scorer.rs         # Scorer trait for ranking
-│   ├── selector.rs       # Selection/truncation logic
-│   └── candidate_pipeline.rs  # Pipeline orchestration
-├── home-mixer/           # Timeline ranking service
-│   ├── scorers/          # Weighted scoring implementations
-│   ├── filters/          # Content safety filters
-│   ├── params.rs         # Scoring weights and constants
-│   └── config.rs         # Configuration management
-├── thunder/              # In-memory post store (reference)
-├── scripts/              # Deployment automation
-└── visualizations/       # Performance dashboard
-```
-
-## 🔧 Key Features
-
-### Candidate Pipeline Framework
-The `candidate-pipeline` crate provides a generic, extensible framework for building ranking pipelines:
-
-- **Sources**: Fetch candidates from various backends
-- **Hydrators**: Enrich candidates with additional data
-- **Filters**: Remove candidates that don't meet criteria
-- **Scorers**: Compute ranking scores
-- **Selectors**: Sort and truncate results
-
-### Weighted Scoring
-```rust
-// Scoring weights (from params.rs)
-FAVORITE_WEIGHT: 1.0
-REPLY_WEIGHT: 27.0        // Replies are highly valued
-RETWEET_WEIGHT: 1.0
-PROFILE_CLICK_WEIGHT: 12.0
-NOT_INTERESTED_WEIGHT: -74.0  // Strong negative signal
-REPORT_WEIGHT: -369.0     // Very strong negative signal
-```
-
-## 📊 Performance Targets
-
-| Metric | Target |
-|--------|--------|
-| Latency (p50) | < 50ms |
-| Cache Hit Rate | > 50% |
-| GPU Utilization | > 80% |
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](docs/CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
-
-## 🔒 Security
-
-For security concerns, please review our [Security Policy](SECURITY.md).
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+1. **Read the [Posting Strategy Guide](./docs/POSTING_STRATEGY.md)** - Actionable tips based on the algorithm
+2. **Use the [Score Calculator](./tools/score-calculator.html)** - Predict how your content will rank
+3. **Check the [Twitter Thread](./docs/TWITTER_THREAD.md)** - Share this knowledge with your audience
 
 ---
 
-**⭐ Star this repository** if you find it useful!
+## 🧠 How The Algorithm Works
 
-**🐛 Found a bug?** [Open an issue](https://github.com/mangeshraut712/x-algorithm/issues)
+```
+User Opens App
+       │
+       ▼
+┌──────────────────┐
+│   HOME MIXER     │  ← Orchestration layer
+└──────────────────┘
+       │
+       ├─────────────────────────────────┐
+       ▼                                 ▼
+┌──────────────┐                ┌──────────────────┐
+│   THUNDER    │                │ PHOENIX RETRIEVAL│
+│ (Following)  │                │ (Discovery)      │
+└──────────────┘                └──────────────────┘
+       │                                 │
+       └─────────────┬───────────────────┘
+                     ▼
+            ┌──────────────────┐
+            │    FILTERING     │  ← Remove spam, duplicates, etc.
+            └──────────────────┘
+                     │
+                     ▼
+            ┌──────────────────┐
+            │    SCORING       │  ← ML predictions × weights
+            └──────────────────┘
+                     │
+                     ▼
+            ┌──────────────────┐
+            │   SELECTION      │  ← Top K by score
+            └──────────────────┘
+                     │
+                     ▼
+              Your "For You" Feed
+```
 
-**💡 Have an idea?** [Start a discussion](https://github.com/mangeshraut712/x-algorithm/discussions)
+---
+
+## 📊 Key Components Explained
+
+### 1. Phoenix Scorer (ML Predictions)
+Uses a Grok-based transformer to predict engagement probabilities:
+- P(like), P(reply), P(retweet), P(follow), etc.
+
+### 2. Weighted Scorer (Score Combination)
+Combines predictions using the weights shown above.
+
+### 3. SimClusters (Topic Matching)
+Groups users and content into topic clusters. **Staying in your niche is crucial**.
+
+### 4. Author Diversity Scorer
+Prevents any single author from dominating your feed. **Quality > Quantity**.
+
+### 5. Filters
+Remove spam, NSFW, blocked users, old content, etc.
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [🏗️ Architecture](./docs/ARCHITECTURE.md) | Deep dive into system design |
+| [🎯 Posting Strategy](./docs/POSTING_STRATEGY.md) | How to optimize for the algorithm |
+| [🐦 Twitter Thread](./docs/TWITTER_THREAD.md) | Ready-to-post educational thread |
+| [🤝 Contributing](./docs/CONTRIBUTING.md) | How to contribute to this project |
+
+---
+
+## 🛠️ Tools
+
+### Score Calculator
+Interactive tool to predict how your content will rank.
+
+**[→ Open Score Calculator](./tools/score-calculator.html)**
+
+Features:
+- Adjust engagement probabilities
+- See real-time score calculations
+- Get optimization tips
+- Understand the impact of negative signals
+
+---
+
+## 🎯 TL;DR: How To Win
+
+Based on the actual algorithm code:
+
+1. **Create reply-worthy content** (27x weight!)
+2. **Make it shareable** (especially DM-worthy)
+3. **Stop the scroll** (dwell time matters)
+4. **Stay in your niche** (SimClusters are real)
+5. **Never trigger blocks/mutes** (-74 to -369 weight)
+6. **Reply to your comments** (author response boosts)
+7. **Space your posts** (AuthorDiversityScorer decay)
+8. **No links in main post** (link penalty is real)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for guidelines.
+
+### Ways to Contribute
+- 📖 Improve documentation
+- 🐛 Report bugs
+- 💡 Suggest features
+- 💻 Submit code
+- 🎨 Create visualizations
+
+---
+
+## 📄 License
+
+This project is licensed under the Apache 2.0 License - see [LICENSE](LICENSE) for details.
+
+---
+
+## ⭐ Support This Project
+
+If this helped you understand the algorithm:
+
+1. **Star this repo** ⭐
+2. **Share the [Posting Strategy](./docs/POSTING_STRATEGY.md)** with creator friends
+3. **Contribute** to make it even better
+4. **Follow** for updates
+
+---
+
+<div align="center">
+
+**Made with ❤️ for the creator community**
+
+[Report Bug](https://github.com/mangeshraut712/x-algorithm/issues) • [Request Feature](https://github.com/mangeshraut712/x-algorithm/issues) • [Discussions](https://github.com/mangeshraut712/x-algorithm/discussions)
+
+</div>
