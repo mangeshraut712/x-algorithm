@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X Algorithm Analytics</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --x-black: #000000;
+            --x-darker: #16181c;
+            --x-gray-dark: #202327;
+            --x-gray: #2f3336;
+            --x-gray-light: #71767b;
+            --x-white: #e7e9ea;
+            --x-blue: #1d9bf0;
+            --x-green: #00ba7c;
+            --x-red: #f4212e;
+            --x-yellow: #ffd400;
+            --x-purple: #7856ff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--x-black);
+            color: var(--x-white);
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 275px;
+            padding: 12px;
+            position: fixed;
+            height: 100vh;
+            border-right: 1px solid var(--x-gray);
+        }
+
+        .logo {
+            padding: 12px;
+        }
+
+        .logo svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--x-white);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px;
+            border-radius: 9999px;
+            font-size: 20px;
+            color: var(--x-white);
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-item:hover {
+            background: var(--x-gray-dark);
+        }
+
+        .nav-item.active {
+            font-weight: 700;
+        }
+
+        .nav-item svg {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+        }
+
+        /* Main */
+        .main {
+            flex: 1;
+            margin-left: 275px;
+            max-width: 600px;
+            border-right: 1px solid var(--x-gray);
+            min-height: 100vh;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--x-gray);
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-sub {
+            font-size: 13px;
+            color: var(--x-gray-light);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--x-gray);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--x-gray-light);
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--x-gray-dark);
+        }
+
+        .tab.active {
+            color: var(--x-white);
+            font-weight: 700;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 56px;
+            height: 4px;
+            background: var(--x-blue);
+            border-radius: 2px;
+        }
+
+        /* Content sections */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Metric card */
+        .metric {
+            padding: 16px;
+            border-bottom: 1px solid var(--x-gray);
+            transition: background 0.2s;
+        }
+
+        .metric:hover {
+            background: var(--x-gray-dark);
+        }
+
+        .metric-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .metric-icon.blue {
+            background: rgba(29, 155, 240, 0.2);
+        }
+
+        .metric-icon.green {
+            background: rgba(0, 186, 124, 0.2);
+        }
+
+        .metric-icon.purple {
+            background: rgba(120, 86, 255, 0.2);
+        }
+
+        .metric-icon.yellow {
+            background: rgba(255, 212, 0, 0.2);
+        }
+
+        .metric-icon.red {
+            background: rgba(244, 33, 46, 0.2);
+        }
+
+        .metric-title {
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .metric-sub {
+            font-size: 13px;
+            color: var(--x-gray-light);
+        }
+
+        .metric-value {
+            font-size: 31px;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+
+        .metric-value.blue {
+            color: var(--x-blue);
+        }
+
+        .metric-value.green {
+            color: var(--x-green);
+        }
+
+        .metric-value.purple {
+            color: var(--x-purple);
+        }
+
+        .metric-value.yellow {
+            color: var(--x-yellow);
+        }
+
+        .metric-value.red {
+            color: var(--x-red);
+        }
+
+        .metric-change {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .metric-change.pos {
+            background: rgba(0, 186, 124, 0.15);
+            color: var(--x-green);
+        }
+
+        .metric-change.neg {
+            background: rgba(244, 33, 46, 0.15);
+            color: var(--x-red);
+        }
+
+        /* Chart */
+        .chart-box {
+            padding: 16px;
+            border-bottom: 1px solid var(--x-gray);
+        }
+
+        .chart-title {
+            font-weight: 700;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .chart-desc {
+            font-size: 13px;
+            color: var(--x-gray-light);
+            margin-bottom: 16px;
+        }
+
+        .chart {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            background: var(--x-darker);
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            margin-top: 12px;
+            border-top: 1px solid var(--x-gray);
+        }
+
+        .action {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 9999px;
+            font-size: 13px;
+            color: var(--x-gray-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action:hover {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--x-blue);
+        }
+
+        .action svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Right sidebar */
+        .right {
+            width: 350px;
+            padding: 12px 24px;
+            margin-left: 600px;
+            position: fixed;
+            right: calc((100% - 1400px) / 2);
+        }
+
+        .box {
+            background: var(--x-darker);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .box-header {
+            padding: 12px 16px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .box-item {
+            padding: 12px 16px;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .box-item:hover {
+            background: var(--x-gray-dark);
+        }
+
+        .box-cat {
+            font-size: 13px;
+            color: var(--x-gray-light);
+        }
+
+        .box-name {
+            font-weight: 700;
+            font-size: 15px;
+            margin: 4px 0;
+        }
+
+        .box-stat {
+            font-size: 13px;
+            color: var(--x-gray-light);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 12px 16px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 12px;
+            background: var(--x-gray-dark);
+            border-radius: 12px;
+        }
+
+        .summary-val {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--x-green);
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--x-gray-light);
+            margin-top: 4px;
+        }
+
+        /* Live indicator */
+        .live {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(244, 33, 46, 0.15);
+            color: var(--x-red);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--x-red);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* Verified badge */
+        .verified svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--x-blue);
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        @media (max-width: 1200px) {
+            .right {
+                display: none;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .sidebar {
+                width: 72px;
+            }
+
+            .sidebar span {
+                display: none;
+            }
+
+            .main {
+                margin-left: 72px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <svg viewBox="0 0 24 24">
+                    <path
+                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+            </div>
+            <a class="nav-item active"><svg viewBox="0 0 24 24">
+                    <path
+                        d="M12 1.696L.622 8.807l1.06 1.696L3 9.679V19.5C3 20.881 4.119 22 5.5 22h13c1.381 0 2.5-1.119 2.5-2.5V9.679l1.318.824 1.06-1.696L12 1.696zM12 16.5c-1.933 0-3.5-1.567-3.5-3.5s1.567-3.5 3.5-3.5 3.5 1.567 3.5 3.5-1.567 3.5-3.5 3.5z" />
+                </svg><span>Home</span></a>
+            <a class="nav-item"><svg viewBox="0 0 24 24">
+                    <path
+                        d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z" />
+                </svg><span>Explore</span></a>
+            <a class="nav-item"><svg viewBox="0 0 24 24">
+                    <path
+                        d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958z" />
+                </svg><span>Alerts</span></a>
+            <a class="nav-item"><svg viewBox="0 0 24 24">
+                    <path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z" />
+                </svg><span>Analytics</span></a>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="header">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <h1>Algorithm Analytics</h1>
+                        <div class="header-sub">Real-time performance metrics</div>
+                    </div>
+                    <div class="live">
+                        <div class="live-dot"></div>LIVE
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <div class="tab active" data-tab="overview">Overview</div>
+                <div class="tab" data-tab="latency">Latency</div>
+                <div class="tab" data-tab="safety">Safety</div>
+                <div class="tab" data-tab="cost">Cost</div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon blue">⚡</div>
+                        <div>
+                            <div class="metric-title">Feed Latency (p50)<span class="verified"><svg viewBox="0 0 22 22">
+                                        <path
+                                            d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" />
+                                    </svg></span></div>
+                            <div class="metric-sub">@algorithm · now</div>
+                        </div>
+                    </div>
+                    <div class="metric-value blue" id="latency-value">50ms</div>
+                    <span class="metric-change pos">↓ 50% from 100ms</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon green">🚀</div>
+                        <div>
+                            <div class="metric-title">Throughput<span class="verified"><svg viewBox="0 0 22 22">
+                                        <path
+                                            d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z" />
+                                    </svg></span></div>
+                            <div class="metric-sub">@algorithm · now</div>
+                        </div>
+                    </div>
+                    <div class="metric-value green" id="throughput-value">45K RPS</div>
+                    <span class="metric-change pos">↑ 275% from 12K</span>
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">Live Latency (Last 60 seconds)</div>
+                    <div class="chart-desc">Real-time p50 and p99 latency</div>
+                    <div id="live-chart" class="chart"></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon purple">💾</div>
+                        <div>
+                            <div class="metric-title">Cache Hit Rate</div>
+                            <div class="metric-sub">@algorithm · now</div>
+                        </div>
+                    </div>
+                    <div class="metric-value purple" id="cache-value">55%</div>
+                    <span class="metric-change pos">Target: >40%</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon yellow">🖥️</div>
+                        <div>
+                            <div class="metric-title">GPU Utilization</div>
+                            <div class="metric-sub">@algorithm · now</div>
+                        </div>
+                    </div>
+                    <div class="metric-value yellow" id="gpu-value">80%</div>
+                    <span class="metric-change pos">↑ 300% from 20%</span>
+                </div>
+            </div>
+
+            <!-- Latency Tab -->
+            <div id="latency" class="tab-content">
+                <div class="chart-box">
+                    <div class="chart-title">Latency Comparison (24h)</div>
+                    <div class="chart-desc">Before optimization (red) vs After (green)</div>
+                    <div id="latency-chart" class="chart"></div>
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">Latency Distribution</div>
+                    <div class="chart-desc">p50, p95, p99 percentiles</div>
+                    <div id="latency-dist-chart" class="chart"></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon blue">📊</div>
+                        <div>
+                            <div class="metric-title">Latency Breakdown</div>
+                            <div class="metric-sub">By component</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;font-size:14px;">
+                        <div
+                            style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--x-gray);">
+                            <span>Cache Lookup</span><span style="color:var(--x-green)">2ms</span>
+                        </div>
+                        <div
+                            style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--x-gray);">
+                            <span>ML Inference</span><span style="color:var(--x-yellow)">35ms</span>
+                        </div>
+                        <div
+                            style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--x-gray);">
+                            <span>Scoring</span><span style="color:var(--x-blue)">8ms</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                            <span>Network</span><span style="color:var(--x-purple)">5ms</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Tab -->
+            <div id="safety" class="tab-content">
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon red">🛡️</div>
+                        <div>
+                            <div class="metric-title">Content Filtered</div>
+                            <div class="metric-sub">Total unsafe content blocked</div>
+                        </div>
+                    </div>
+                    <div class="metric-value red" id="filtered-total">44%</div>
+                    <span class="metric-change pos">Keeping users safe</span>
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">Filter Breakdown</div>
+                    <div class="chart-desc">Content removed by filter type</div>
+                    <div id="safety-chart" class="chart"></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon red">🔞</div>
+                        <div>
+                            <div class="metric-title">NSFW Blocked</div>
+                        </div>
+                    </div>
+                    <div class="metric-value" style="color:var(--x-red);" id="nsfw-count">12,847</div>
+                    <span class="metric-change pos">↓ 81% complaints</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon yellow">🤖</div>
+                        <div>
+                            <div class="metric-title">Spam/Bots Blocked</div>
+                        </div>
+                    </div>
+                    <div class="metric-value yellow" id="spam-count">8,234</div>
+                    <span class="metric-change pos">↓ 75% reports</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon purple">🎣</div>
+                        <div>
+                            <div class="metric-title">Clickbait Blocked</div>
+                        </div>
+                    </div>
+                    <div class="metric-value purple" id="clickbait-count">5,621</div>
+                    <span class="metric-change pos">↓ 63% exposure</span>
+                </div>
+            </div>
+
+            <!-- Cost Tab -->
+            <div id="cost" class="tab-content">
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon green">💰</div>
+                        <div>
+                            <div class="metric-title">Monthly Cost</div>
+                            <div class="metric-sub">Infrastructure spending</div>
+                        </div>
+                    </div>
+                    <div class="metric-value green">$245K</div>
+                    <span class="metric-change pos">↓ $325K saved/month</span>
+                </div>
+
+                <div class="chart-box">
+                    <div class="chart-title">Cost Breakdown</div>
+                    <div class="chart-desc">Before vs After by component</div>
+                    <div id="cost-chart" class="chart"></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon green">📈</div>
+                        <div>
+                            <div class="metric-title">Annual Savings</div>
+                        </div>
+                    </div>
+                    <div class="metric-value green">$3.9M</div>
+                    <span class="metric-change pos">ROI: 1,950,000%</span>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-head">
+                        <div class="metric-icon blue">🖥️</div>
+                        <div>
+                            <div class="metric-title">GPU Instances</div>
+                        </div>
+                    </div>
+                    <div class="metric-value blue">35</div>
+                    <span class="metric-change pos">↓ from 100 instances</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right">
+            <div class="box">
+                <div class="box-header">Performance Summary</div>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-val">-50%</div>
+                        <div class="summary-label">Latency</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-val">+275%</div>
+                        <div class="summary-label">Throughput</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-val">55%</div>
+                        <div class="summary-label">Cache Hit</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-val">$3.9M</div>
+                        <div class="summary-label">Saved/Year</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="box-header">System Status</div>
+                <div class="box-item">
+                    <div class="box-cat">Caching</div>
+                    <div class="box-name" style="color:var(--x-green);">● Healthy</div>
+                    <div class="box-stat">55% hit rate</div>
+                </div>
+                <div class="box-item">
+                    <div class="box-cat">Batching</div>
+                    <div class="box-name" style="color:var(--x-green);">● Healthy</div>
+                    <div class="box-stat">128 batch size</div>
+                </div>
+                <div class="box-item">
+                    <div class="box-cat">Safety Filters</div>
+                    <div class="box-name" style="color:var(--x-green);">● Active</div>
+                    <div class="box-stat">NSFW, Spam, Clickbait</div>
+                </div>
+                <div class="box-item">
+                    <div class="box-cat">Personalization</div>
+                    <div class="box-name" style="color:var(--x-green);">● Active</div>
+                    <div class="box-stat">100 clusters</div>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="box-header">Quick Actions</div>
+                <div class="box-item" onclick="location.reload()">
+                    <div class="box-name">↻ Refresh Data</div>
+                </div>
+                <div class="box-item" onclick="toggleTheme()">
+                    <div class="box-name">🌓 Toggle Theme</div>
+                </div>
+                <div class="box-item" onclick="exportData()">
+                    <div class="box-name">📊 Export CSV</div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Chart config
+        const layout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#71767b', family: 'Inter' },
+            xaxis: { gridcolor: 'rgba(47,51,54,0.5)', linecolor: 'rgba(47,51,54,0.5)' },
+            yaxis: { gridcolor: 'rgba(47,51,54,0.5)', linecolor: 'rgba(47,51,54,0.5)' },
+            margin: { t: 20, r: 20, b: 40, l: 50 },
+            showlegend: true,
+            legend: { font: { color: '#e7e9ea' } }
+        };
+        const config = { responsive: true, displayModeBar: false };
+
+        // Live data
+        let liveP50 = [], liveP99 = [], liveTimes = [];
+
+        function updateLiveChart() {
+            const now = new Date();
+            liveTimes.push(now);
+            liveP50.push(48 + Math.random() * 8);
+            liveP99.push(78 + Math.random() * 15);
+
+            if (liveTimes.length > 60) {
+                liveTimes.shift();
+                liveP50.shift();
+                liveP99.shift();
+            }
+
+            Plotly.react('live-chart', [
+                { x: liveTimes, y: liveP50, type: 'scatter', mode: 'lines', name: 'p50', line: { color: '#1d9bf0', width: 2 } },
+                { x: liveTimes, y: liveP99, type: 'scatter', mode: 'lines', name: 'p99', line: { color: '#f4212e', width: 2 } }
+            ], { ...layout, yaxis: { ...layout.yaxis, title: 'ms', range: [0, 120] } }, config);
+
+            // Update values with animation
+            document.getElementById('latency-value').textContent = Math.round(liveP50[liveP50.length - 1]) + 'ms';
+        }
+
+        // Initialize live chart
+        for (let i = 60; i >= 0; i--) {
+            liveTimes.push(new Date(Date.now() - i * 1000));
+            liveP50.push(48 + Math.random() * 8);
+            liveP99.push(78 + Math.random() * 15);
+        }
+        updateLiveChart();
+        setInterval(updateLiveChart, 1000);
+
+        // Latency comparison chart
+        function initLatencyChart() {
+            const hours = 24;
+            const times = [];
+            const before = [], after = [];
+            for (let i = 0; i < hours; i++) {
+                times.push(`${i}:00`);
+                before.push(95 + Math.random() * 20);
+                after.push(48 + Math.random() * 8);
+            }
+
+            Plotly.newPlot('latency-chart', [
+                { x: times, y: before, type: 'scatter', mode: 'lines', name: 'Before', line: { color: '#f4212e' }, fill: 'tozeroy', fillcolor: 'rgba(244,33,46,0.1)' },
+                { x: times, y: after, type: 'scatter', mode: 'lines', name: 'After', line: { color: '#00ba7c' }, fill: 'tozeroy', fillcolor: 'rgba(0,186,124,0.1)' }
+            ], { ...layout, yaxis: { ...layout.yaxis, title: 'Latency (ms)' } }, config);
+        }
+
+        // Latency distribution
+        function initLatencyDist() {
+            Plotly.newPlot('latency-dist-chart', [
+                { x: ['p50', 'p95', 'p99'], y: [100, 180, 220], type: 'bar', name: 'Before', marker: { color: '#f4212e' } },
+                { x: ['p50', 'p95', 'p99'], y: [50, 72, 88], type: 'bar', name: 'After', marker: { color: '#00ba7c' } }
+            ], { ...layout, barmode: 'group', yaxis: { ...layout.yaxis, title: 'ms' } }, config);
+        }
+
+        // Safety chart
+        function initSafetyChart() {
+            Plotly.newPlot('safety-chart', [{
+                values: [48, 31, 21],
+                labels: ['NSFW', 'Spam/Bots', 'Clickbait'],
+                type: 'pie',
+                marker: { colors: ['#f4212e', '#ffd400', '#7856ff'] },
+                textinfo: 'label+percent',
+                textfont: { color: '#e7e9ea' }
+            }], { ...layout, showlegend: false }, config);
+        }
+
+        // Cost chart
+        function initCostChart() {
+            Plotly.newPlot('cost-chart', [
+                { x: ['GPU', 'Memory', 'Network', 'Total'], y: [500, 50, 20, 570], type: 'bar', name: 'Before ($K)', marker: { color: '#f4212e' } },
+                { x: ['GPU', 'Memory', 'Network', 'Total'], y: [175, 55, 15, 245], type: 'bar', name: 'After ($K)', marker: { color: '#00ba7c' } }
+            ], { ...layout, barmode: 'group', yaxis: { ...layout.yaxis, title: '$K/month' } }, config);
+        }
+
+        // Initialize all charts
+        initLatencyChart();
+        initLatencyDist();
+        initSafetyChart();
+        initCostChart();
+
+        // Simulate live counter updates
+        setInterval(() => {
+            const nsfw = document.getElementById('nsfw-count');
+            const spam = document.getElementById('spam-count');
+            const click = document.getElementById('clickbait-count');
+            nsfw.textContent = (parseInt(nsfw.textContent.replace(/,/g, '')) + Math.floor(Math.random() * 5)).toLocaleString();
+            spam.textContent = (parseInt(spam.textContent.replace(/,/g, '')) + Math.floor(Math.random() * 3)).toLocaleString();
+            click.textContent = (parseInt(click.textContent.replace(/,/g, '')) + Math.floor(Math.random() * 2)).toLocaleString();
+        }, 2000);
+
+        // Update throughput
+        setInterval(() => {
+            const val = 43 + Math.floor(Math.random() * 5);
+            document.getElementById('throughput-value').textContent = val + 'K RPS';
+            document.getElementById('cache-value').textContent = (53 + Math.floor(Math.random() * 5)) + '%';
+            document.getElementById('gpu-value').textContent = (78 + Math.floor(Math.random() * 5)) + '%';
+        }, 3000);
+
+        // Export function
+        function exportData() {
+            const data = `Metric,Before,After,Change
+Latency p50,100ms,50ms,-50%
+Throughput,12K RPS,45K RPS,+275%
+Cache Hit Rate,0%,55%,New
+GPU Utilization,20%,80%,+300%
+Monthly Cost,$570K,$245K,-57%
+Annual Savings,-,$3.9M,-`;
+            const blob = new Blob([data], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'x-algorithm-metrics.csv';
+            a.click();
+        }
+
+        // Theme toggle (placeholder)
+        function toggleTheme() {
+            alert('Theme toggle coming soon!');
+        }
+    </script>
+</body>
+
+</html>

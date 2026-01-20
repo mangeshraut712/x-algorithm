@@ -1,5 +1,6 @@
 pub mod age_filter;
 pub mod author_socialgraph_filter;
+pub mod content_quality_filters; // NEW: NSFW, spam, engagement bait, diversity filters
 pub mod core_data_hydration_filter;
 pub mod dedup_conversation_filter;
 pub mod drop_duplicates_filter;

@@ -1,0 +1,91 @@
+[package]
+name = "home-mixer"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+candidate-pipeline = { path = "../candidate-pipeline" }
+
+# Core async runtime
+tokio.workspace = true
+
+# gRPC framework
+tonic.workspace = true
+prost.workspace = true
+
+# Logging
+log.workspace = true
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# HTTP client for external APIs
+reqwest = { version = "0.11", features = ["json"] }
+
+# Time utilities
+chrono.workspace = true
+
+# Collections and utilities
+itertools.workspace = true
+
+# ============================================================
+# NEW: Optimization Dependencies
+# ============================================================
+
+# LRU cache for Phoenix scoring cache
+lru = "0.12"
+
+# High-performance cache for age filter
+moka = { version = "0.12", features = ["sync"] }
+
+# ============================================================
+# Optional: Additional Performance Libraries
+# ============================================================
+
+# For metrics and monitoring
+prometheus = { version = "0.13", optional = true }
+lazy_static = { version = "1.4", optional = true }
+
+# For faster hashing
+ahash = { version = "0.8", optional = true }
+
+[dev-dependencies]
+# Testing utilities
+criterion = "0.5"  # For benchmarking
+proptest = "1.0"   # For property-based testing
+
+[features]
+default = []
+metrics = ["prometheus", "lazy_static"]
+fast-hash = ["ahash"]
+
+# ============================================================
+# Build Configuration
+# ============================================================
+
+[profile.release]
+# Optimization level
+opt-level = 3
+
+# Link-time optimization for better performance
+lto = true
+
+# Codegen units (1 = best optimization, slower compile)
+codegen-units = 1
+
+# Strip symbols for smaller binary
+strip = true
+
+# Overflow checks in release (safety vs speed tradeoff)
+overflow-checks = false
+
+[profile.dev]
+# Faster compile times in development
+opt-level = 0
+
+[profile.test]
+# Optimize tests for faster execution
+opt-level = 2
