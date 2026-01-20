@@ -115,13 +115,11 @@ Interactive X.com-styled dashboard showing:
 
 ## Documentation
 
-📚 **Complete documentation available:**
+📚 **Documentation:**
 
-- [Quick Start Guide](docs/QUICKSTART.md) - 60-minute deployment
-- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Detailed procedures
-- [Optimization README](docs/OPTIMIZATIONS_README.md) - Technical implementation
-- [API Documentation](docs/FINAL_STATUS_REPORT.md) - Complete API reference
-- [User Analysis](docs/USER_COMPLAINT_ANALYSIS_AND_SOLUTIONS.md) - Safety solutions
+- [Contributing Guide](docs/CONTRIBUTING.md) - Development guidelines
+- [Security Policy](SECURITY.md) - Responsible disclosure
+- [Code of Conduct](CODE_OF_CONDUCT.md) - Community standards
 
 ## Contributing
 
