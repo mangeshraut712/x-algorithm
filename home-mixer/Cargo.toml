@@ -61,31 +61,3 @@ proptest = "1.0"   # For property-based testing
 default = []
 metrics = ["prometheus", "lazy_static"]
 fast-hash = ["ahash"]
-
-# ============================================================
-# Build Configuration
-# ============================================================
-
-[profile.release]
-# Optimization level
-opt-level = 3
-
-# Link-time optimization for better performance
-lto = true
-
-# Codegen units (1 = best optimization, slower compile)
-codegen-units = 1
-
-# Strip symbols for smaller binary
-strip = true
-
-# Overflow checks in release (safety vs speed tradeoff)
-overflow-checks = false
-
-[profile.dev]
-# Faster compile times in development
-opt-level = 0
-
-[profile.test]
-# Optimize tests for faster execution
-opt-level = 2

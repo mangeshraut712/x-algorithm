@@ -1,11 +1,9 @@
-use anyhow::{Context, Result};
-use axum::Router;
+use anyhow::Result;
 use clap::Parser;
 use log::info;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
-use tonic::service::Routes;
-use xai_http_server::{CancellationToken, GrpcConfig, HttpServer};
+use std::time::Instant;
+use tokio::sync::mpsc;
 
 use thunder::{
     args, kafka_utils, posts::post_store::PostStore, strato_client::StratoClient,
@@ -43,28 +41,9 @@ async fn main() -> Result<()> {
         "Initialized with max_concurrent_requests={}",
         args.max_concurrent_requests
     );
-    let routes = Routes::new(thunder_service.server());
-
-    // Set up gRPC config
-    let grpc_config = GrpcConfig::new(args.grpc_port, routes);
-
-    // Create HTTP server with gRPC support
-    let mut http_server = HttpServer::new(
-        args.http_port,
-        Router::new(),
-        Some(grpc_config),
-        CancellationToken::new(),
-        Duration::from_secs(10),
-    )
-    .await
-    .context("Failed to create HTTP server")?;
-
-    if args.enable_profiling {
-        xai_profiling::spawn_server(3000, CancellationToken::new()).await;
-    }
 
     // Create channel for post events
-    let (tx, mut rx) = tokio::sync::mpsc::channel::<i64>(args.kafka_num_threads);
+    let (tx, mut rx) = mpsc::channel::<i64>(args.kafka_num_threads);
     kafka_utils::start_kafka(&args, post_store.clone(), "", tx).await?;
 
     if args.is_serving {
@@ -79,7 +58,7 @@ async fn main() -> Result<()> {
 
         // Start stats logger
         Arc::clone(&post_store).start_stats_logger();
-        info!("Started PostStore stats logger",);
+        info!("Started PostStore stats logger");
 
         // Start auto-trim task to remove posts older than retention period
         Arc::clone(&post_store).start_auto_trim(2); // Run every 2 minutes
@@ -87,14 +66,17 @@ async fn main() -> Result<()> {
             "Started PostStore auto-trim task (interval: 2 minutes, retention: {:.1} days)",
             args.post_retention_seconds as f64 / 86400.0
         );
+
+        // Set up gRPC server
+        let addr = format!("0.0.0.0:{}", args.grpc_port).parse()?;
+        info!("Starting gRPC server on {}", addr);
+
+        tonic::transport::Server::builder()
+            .add_service(thunder_service.server())
+            .serve(addr)
+            .await?;
     }
 
-    http_server.set_readiness(true);
-    info!("HTTP/gRPC server is ready");
-
-    // Wait for termination signal
-    http_server.wait_for_termination().await;
-    info!("Server terminated");
-
+    info!("Thunder service terminated");
     Ok(())
 }

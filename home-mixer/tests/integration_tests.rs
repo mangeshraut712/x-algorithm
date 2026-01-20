@@ -27,7 +27,7 @@ async fn test_caching_reduces_ml_calls() {
         CacheConfig::default(),
     );
     
-    let query = create_test_query(user_id: 12345);
+    let query = create_test_query(12345);
     let candidates = create_test_candidates(10);
     
     // First call - should hit ML
