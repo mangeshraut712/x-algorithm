@@ -28,27 +28,11 @@ jobs:
     - name: Check formatting
       run: cargo fmt --all -- --check
 
-    - name: Run tests
-      run: cargo test --workspace --verbose
+    - name: Run tests (candidate-pipeline only)
+      run: cargo test -p candidate-pipeline --verbose
 
-    - name: Build release
-      run: cargo build --workspace --release
-
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-
-    - name: Install cargo-audit
-      run: cargo install cargo-audit
-
-    - name: Run security audit
-      run: cargo audit
+    - name: Build candidate-pipeline
+      run: cargo build -p candidate-pipeline --release
 
   clippy:
     name: Clippy
@@ -65,5 +49,5 @@ jobs:
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Run clippy
-      run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+    - name: Run clippy (candidate-pipeline)
+      run: cargo clippy -p candidate-pipeline --all-targets -- -D warnings

@@ -5,6 +5,14 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
+[lib]
+name = "home_mixer"
+path = "lib.rs"
+
+[[bin]]
+name = "home-mixer"
+path = "main.rs"
+
 [dependencies]
 candidate-pipeline = { path = "../candidate-pipeline" }
 
@@ -14,26 +22,30 @@ tokio.workspace = true
 # gRPC framework
 tonic.workspace = true
 prost.workspace = true
+tonic-reflection = "0.10"
 
 # Logging
 log.workspace = true
+env_logger = "0.11"
 
 # Serialization
 serde.workspace = true
 serde_json.workspace = true
 
-# HTTP client for external APIs
+# HTTP server and client
+axum = "0.7"
 reqwest = { version = "0.11", features = ["json"] }
+tower = "0.4"
+tower-http = "0.5"
 
 # Time utilities
 chrono.workspace = true
 
 # Collections and utilities
 itertools.workspace = true
-
-# ============================================================
-# NEW: Optimization Dependencies
-# ============================================================
+clap = { version = "4.4", features = ["derive"] }
+anyhow.workspace = true
+futures.workspace = true
 
 # LRU cache for Phoenix scoring cache
 lru = "0.12"
@@ -41,23 +53,13 @@ lru = "0.12"
 # High-performance cache for age filter
 moka = { version = "0.12", features = ["sync"] }
 
-# ============================================================
-# Optional: Additional Performance Libraries
-# ============================================================
-
-# For metrics and monitoring
-prometheus = { version = "0.13", optional = true }
-lazy_static = { version = "1.4", optional = true }
-
-# For faster hashing
-ahash = { version = "0.8", optional = true }
+# HTTP types
+http = "1.0"
 
 [dev-dependencies]
 # Testing utilities
-criterion = "0.5"  # For benchmarking
-proptest = "1.0"   # For property-based testing
+criterion = "0.5"
+proptest = "1.0"
 
 [features]
 default = []
-metrics = ["prometheus", "lazy_static"]
-fast-hash = ["ahash"]

@@ -1,5 +1,4 @@
 use crate::util;
-use std::any::type_name_of_val;
 use std::sync::Arc;
 use tonic::async_trait;
 
@@ -24,6 +23,6 @@ where
     async fn run(&self, input: Arc<SideEffectInput<Q, C>>) -> Result<(), String>;
 
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }

@@ -1,13 +1,14 @@
+//! HomeMixer Server Implementation
+
 use crate::candidate_pipeline::candidate::CandidateHelpers;
 use crate::candidate_pipeline::phoenix_candidate_pipeline::PhoenixCandidatePipeline;
 use crate::candidate_pipeline::query::ScoredPostsQuery;
+use crate::proto;
+use candidate_pipeline::candidate_pipeline::CandidatePipeline;
 use log::info;
 use std::sync::Arc;
 use std::time::Instant;
 use tonic::{Request, Response, Status};
-use xai_candidate_pipeline::candidate_pipeline::CandidatePipeline;
-use xai_home_mixer_proto as pb;
-use xai_home_mixer_proto::{ScoredPost, ScoredPostsResponse};
 
 pub struct HomeMixerServer {
     phx_candidate_pipeline: Arc<PhoenixCandidatePipeline>,
@@ -22,12 +23,11 @@ impl HomeMixerServer {
 }
 
 #[tonic::async_trait]
-impl pb::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
-    #[xai_stats_macro::receive_stats]
+impl proto::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
     async fn get_scored_posts(
         &self,
-        request: Request<pb::ScoredPostsQuery>,
-    ) -> Result<Response<ScoredPostsResponse>, Status> {
+        request: Request<proto::ScoredPostsQuery>,
+    ) -> Result<Response<proto::ScoredPostsResponse>, Status> {
         let proto_query = request.into_inner();
 
         if proto_query.viewer_id == 0 {
@@ -36,8 +36,8 @@ impl pb::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
 
         let start = Instant::now();
         let query = ScoredPostsQuery::new(
-            proto_query.viewer_id,
-            proto_query.client_app_id,
+            proto_query.viewer_id as i64,
+            proto_query.client_app_id as i32,
             proto_query.country_code,
             proto_query.language_code,
             proto_query.seen_ids,
@@ -49,12 +49,12 @@ impl pb::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
         info!("Scored Posts request - request_id {}", query.request_id);
         let pipeline_result = self.phx_candidate_pipeline.execute(query).await;
 
-        let scored_posts: Vec<ScoredPost> = pipeline_result
+        let scored_posts: Vec<proto::ScoredPost> = pipeline_result
             .selected_candidates
             .into_iter()
             .map(|candidate| {
                 let screen_names = candidate.get_screen_names();
-                ScoredPost {
+                proto::ScoredPost {
                     tweet_id: candidate.tweet_id as u64,
                     author_id: candidate.author_id,
                     retweeted_tweet_id: candidate.retweeted_tweet_id.unwrap_or(0),
@@ -67,7 +67,9 @@ impl pb::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
                     prediction_request_id: candidate.prediction_request_id.unwrap_or(0),
                     ancestors: candidate.ancestors,
                     screen_names,
-                    visibility_reason: candidate.visibility_reason.map(|r| r.into()),
+                    visibility_reason: candidate.visibility_reason.map(|r| proto::VisibilityReason {
+                        filtered_reason: Some(r),
+                    }),
                 }
             })
             .collect();
@@ -78,6 +80,6 @@ impl pb::scored_posts_service_server::ScoredPostsService for HomeMixerServer {
             scored_posts.len(),
             start.elapsed().as_millis()
         );
-        Ok(Response::new(ScoredPostsResponse { scored_posts }))
+        Ok(Response::new(proto::ScoredPostsResponse { scored_posts }))
     }
 }

@@ -1,5 +1,4 @@
 use crate::util;
-use std::any::type_name_of_val;
 
 pub trait Selector<Q, C>: Send + Sync
 where
@@ -40,6 +39,6 @@ where
     }
 
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }

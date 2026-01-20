@@ -1,6 +1,7 @@
+//! Post candidate data structures
+
 use std::collections::HashMap;
-use xai_home_mixer_proto as pb;
-use xai_visibility_filtering::models as vf;
+use crate::proto::{ServedType, FilteredReason};
 
 #[derive(Clone, Debug, Default)]
 pub struct PostCandidate {
@@ -15,14 +16,14 @@ pub struct PostCandidate {
     pub last_scored_at_ms: Option<u64>,
     pub weighted_score: Option<f64>,
     pub score: Option<f64>,
-    pub served_type: Option<pb::ServedType>,
+    pub served_type: Option<ServedType>,
     pub in_network: Option<bool>,
     pub ancestors: Vec<u64>,
     pub video_duration_ms: Option<i32>,
     pub author_followers_count: Option<i32>,
     pub author_screen_name: Option<String>,
     pub retweeted_screen_name: Option<String>,
-    pub visibility_reason: Option<vf::FilteredReason>,
+    pub visibility_reason: Option<FilteredReason>,
     pub subscription_author_id: Option<u64>,
 }
 

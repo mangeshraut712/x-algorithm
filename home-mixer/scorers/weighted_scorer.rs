@@ -7,14 +7,13 @@ use crate::candidate_pipeline::candidate::{PhoenixScores, PostCandidate};
 use crate::candidate_pipeline::query::ScoredPostsQuery;
 use crate::params as p;
 use crate::util::score_normalizer::normalize_score;
+use candidate_pipeline::scorer::Scorer;
 use tonic::async_trait;
-use xai_candidate_pipeline::scorer::Scorer;
 
 pub struct WeightedScorer;
 
 #[async_trait]
 impl Scorer<ScoredPostsQuery, PostCandidate> for WeightedScorer {
-    #[xai_stats_macro::receive_stats]
     async fn score(
         &self,
         _query: &ScoredPostsQuery,
@@ -43,6 +42,7 @@ impl Scorer<ScoredPostsQuery, PostCandidate> for WeightedScorer {
 
 impl WeightedScorer {
     #[inline]
+    #[allow(dead_code)]
     fn apply(score: Option<f64>, weight: f64) -> f64 {
         score.unwrap_or(0.0) * weight
     }
@@ -107,7 +107,6 @@ impl WeightedScorer {
         ];
 
         // OPTIMIZATION: Array-based computation allows compiler to vectorize
-        // Use chunks for explicit SIMD if needed (requires nightly Rust)
         let mut combined_score = 0.0;
         for i in 0..scores.len() {
             combined_score += scores[i] * weights[i];
@@ -139,24 +138,6 @@ impl WeightedScorer {
         }
     }
 }
-
-// PERFORMANCE NOTE: To enable explicit SIMD (requires nightly Rust):
-// 
-// #![feature(portable_simd)]
-// use std::simd::f64x4;
-// 
-// Then replace the loop with:
-// let mut total = 0.0;
-// for chunk in 0..(scores.len() / 4) {
-//     let idx = chunk * 4;
-//     let score_vec = f64x4::from_array([
-//         scores[idx], scores[idx+1], scores[idx+2], scores[idx+3]
-//     ]);
-//     let weight_vec = f64x4::from_array([
-//         weights[idx], weights[idx+1], weights[idx+2], weights[idx+3]
-//     ]);
-//     total += (score_vec * weight_vec).reduce_sum();
-// }
 
 #[cfg(test)]
 mod tests {

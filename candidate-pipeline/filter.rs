@@ -1,4 +1,4 @@
-use std::any::{Any, type_name_of_val};
+use std::any::Any;
 use tonic::async_trait;
 
 use crate::util;
@@ -27,6 +27,6 @@ where
 
     /// Returns a stable name for logging/metrics.
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }
