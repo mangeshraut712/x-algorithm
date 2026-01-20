@@ -1,9 +1,12 @@
 //! Scored posts query types
 
 use crate::candidate_pipeline::query_features::UserFeatures;
-use crate::proto::{ImpressionBloomFilterEntry, TwitterContextViewer, GetTwitterContextViewer, UserActionSequence};
+use crate::proto::{
+    GetTwitterContextViewer, ImpressionBloomFilterEntry, TwitterContextViewer, UserActionSequence,
+};
 use crate::util::request_util::generate_request_id;
 use candidate_pipeline::candidate_pipeline::HasRequestId;
+
 
 #[derive(Clone, Default, Debug)]
 pub struct ScoredPostsQuery {

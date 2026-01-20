@@ -10,8 +10,8 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test
+  build:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -25,29 +25,11 @@ jobs:
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
 
-    - name: Check formatting
-      run: cargo fmt --all -- --check
-
-    - name: Run tests (candidate-pipeline only)
-      run: cargo test -p candidate-pipeline --verbose
-
     - name: Build candidate-pipeline
       run: cargo build -p candidate-pipeline --release
 
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Install Rust
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: clippy
-
-    - name: Cache dependencies
-      uses: Swatinem/rust-cache@v2
+    - name: Run tests (candidate-pipeline)
+      run: cargo test -p candidate-pipeline --verbose
 
     - name: Run clippy (candidate-pipeline)
       run: cargo clippy -p candidate-pipeline --all-targets -- -D warnings

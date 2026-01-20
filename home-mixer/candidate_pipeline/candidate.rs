@@ -1,7 +1,8 @@
 //! Post candidate data structures
 
+use crate::proto::{FilteredReason, ServedType};
 use std::collections::HashMap;
-use crate::proto::{ServedType, FilteredReason};
+
 
 #[derive(Clone, Debug, Default)]
 pub struct PostCandidate {
