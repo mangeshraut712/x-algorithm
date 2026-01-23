@@ -9,6 +9,7 @@
         content="Simulate how X's algorithm ranks posts in your For You feed based on actual weights.">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -18,356 +19,442 @@
 
         :root {
             --bg: #000;
-            --card: #16181c;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --bg-hover: #181818;
             --border: #2f3336;
             --text: #e7e9ea;
             --text-muted: #71767b;
             --blue: #1d9bf0;
             --green: #00ba7c;
             --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            line-height: 1.5;
         }
 
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
         }
 
         header {
-            text-align: center;
-            padding: 40px 0 30px;
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
             border-bottom: 1px solid var(--border);
-            margin-bottom: 20px;
         }
 
-        h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding: 12px 16px;
         }
 
-        .subtitle {
-            color: var(--text-muted);
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
         }
 
-        /* Tabs */
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
         .tabs {
             display: flex;
-            gap: 4px;
-            background: var(--card);
-            padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
         }
 
         .tab {
             flex: 1;
-            padding: 12px;
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-weight: 600;
+            padding: 16px;
+            text-align: center;
             cursor: pointer;
-            border-radius: 8px;
+            color: var(--text-muted);
+            font-weight: 500;
+            border: none;
+            border-bottom: 4px solid transparent;
+            background: transparent;
+            font-size: 0.95rem;
             transition: all 0.2s;
         }
 
+        .tab:hover {
+            background: var(--bg-hover);
+        }
+
         .tab.active {
-            background: var(--blue);
-            color: white;
+            color: var(--text);
+            font-weight: 700;
+            border-bottom-color: var(--blue);
         }
 
-        /* Feed */
-        .feed {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
+        /* Post Styles */
         .post {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
             padding: 16px;
-            transition: all 0.3s;
+            border-bottom: 1px solid var(--border);
             cursor: pointer;
+            transition: background 0.2s;
         }
 
         .post:hover {
-            border-color: var(--blue);
+            background: var(--bg-hover);
+        }
+
+        .post-rank {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            background: var(--blue);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .post-container {
+            position: relative;
         }
 
         .post-header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .post-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .avatar {
             width: 40px;
             height: 40px;
-            background: linear-gradient(135deg, var(--blue), var(--pink));
             border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-        }
-
-        .author-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .author-name {
-            font-weight: 700;
-        }
-
-        .author-handle {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .post-rank {
-            background: var(--blue);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            flex-shrink: 0;
         }
 
         .post-content {
-            margin-bottom: 12px;
-            white-space: pre-wrap;
+            flex: 1;
+            padding-right: 60px;
         }
 
-        .post-media {
-            background: var(--border);
-            height: 200px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-        }
-
-        .post-metrics {
-            display: flex;
-            gap: 20px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
-
-        .metric {
+        .post-meta {
             display: flex;
             align-items: center;
             gap: 4px;
         }
 
-        .post-score {
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid var(--border);
+        .post-author {
+            font-weight: 700;
         }
 
+        .post-handle {
+            color: var(--text-muted);
+        }
+
+        .post-text {
+            margin-top: 4px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .post-media {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            height: 200px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 1px solid var(--border);
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            max-width: 400px;
+            margin-top: 12px;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 8px;
+            margin: -8px;
+            border-radius: 9999px;
+            transition: all 0.2s;
+        }
+
+        .post-action:hover {
+            color: var(--blue);
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        /* Score Breakdown */
         .score-breakdown {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            display: none;
+        }
+
+        .score-breakdown.visible {
+            display: block;
+        }
+
+        .breakdown-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            margin-top: 8px;
         }
 
-        .score-item {
-            background: rgba(29, 155, 240, 0.1);
-            padding: 8px;
-            border-radius: 8px;
+        .breakdown-item {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 12px;
             text-align: center;
         }
 
-        .score-item.negative {
+        .breakdown-item.negative {
             background: rgba(249, 24, 128, 0.1);
         }
 
-        .score-value {
+        .breakdown-value {
             font-weight: 700;
+            font-size: 1.1rem;
             color: var(--green);
         }
 
-        .score-item.negative .score-value {
+        .breakdown-item.negative .breakdown-value {
             color: var(--pink);
         }
 
-        .score-label {
+        .breakdown-label {
             font-size: 0.75rem;
             color: var(--text-muted);
+            margin-top: 2px;
         }
 
         .total-score {
             text-align: center;
-            margin-top: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
         }
 
-        .total-score-value {
-            font-size: 2rem;
+        .total-value {
+            font-size: 2.5rem;
             font-weight: 800;
             color: var(--blue);
         }
 
-        /* Form */
-        .add-post-form {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
+        /* Add Post Form */
+        .add-form {
+            padding: 16px;
+        }
+
+        .compose-area {
+            display: flex;
+            gap: 12px;
         }
 
         textarea {
             width: 100%;
             min-height: 100px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px;
+            background: transparent;
+            border: none;
             color: var(--text);
-            font-size: 1rem;
-            font-family: inherit;
-            resize: vertical;
-            margin-bottom: 12px;
-        }
-
-        textarea:focus {
+            font-size: 1.1rem;
+            resize: none;
             outline: none;
-            border-color: var(--blue);
+            font-family: inherit;
         }
 
-        .form-row {
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-muted);
+        }
+
+        .metrics-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
-            margin-bottom: 12px;
         }
 
-        .form-group {
+        .metric-input {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
         }
 
-        .form-group label {
+        .metric-input label {
             font-size: 0.85rem;
             color: var(--text-muted);
         }
 
-        .form-group input {
-            background: var(--bg);
+        .metric-input input {
+            background: var(--bg-secondary);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 8px;
+            padding: 10px 12px;
             color: var(--text);
-            font-size: 0.9rem;
+            font-size: 1rem;
+            width: 100%;
         }
 
-        .form-group input:focus {
+        .metric-input input:focus {
             outline: none;
             border-color: var(--blue);
         }
 
-        .checkbox-row {
+        .toggle-row {
             display: flex;
-            gap: 16px;
             flex-wrap: wrap;
-            margin-bottom: 16px;
+            gap: 12px;
+            margin-top: 12px;
         }
 
-        .checkbox-label {
+        .toggle-label {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             cursor: pointer;
-        }
-
-        .checkbox-label input {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--blue);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--blue);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border-radius: 9999px;
+            font-size: 0.9rem;
             transition: all 0.2s;
         }
 
-        .btn:hover {
-            transform: translateY(-2px);
+        .toggle-label input {
+            display: none;
         }
 
-        /* Algorithm Info */
-        .algo-info {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .algo-title {
-            font-weight: 600;
+        .toggle-label input:checked+span {
             color: var(--blue);
+        }
+
+        .toggle-label:has(input:checked) {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--blue);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #1a8cd8;
+        }
+
+        /* Weights Tab */
+        .weights-section {
+            padding: 16px;
+        }
+
+        .weight-category {
+            margin-bottom: 24px;
+        }
+
+        .weight-category-title {
+            font-weight: 600;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .weight-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         .weight-item {
+            background: var(--bg-secondary);
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
-            padding: 8px;
-            background: var(--bg);
-            border-radius: 8px;
+            align-items: center;
         }
 
-        .weight-positive {
+        .weight-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .weight-value {
+            font-weight: 700;
+        }
+
+        .weight-value.positive {
             color: var(--green);
-            font-weight: 700;
         }
 
-        .weight-negative {
+        .weight-value.negative {
             color: var(--pink);
-            font-weight: 700;
         }
 
         footer {
+            padding: 24px;
             text-align: center;
-            padding: 40px 20px;
             color: var(--text-muted);
         }
 
@@ -375,120 +462,188 @@
             color: var(--blue);
             text-decoration: none;
         }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <header>
-            <h1>📊 Feed Simulator</h1>
-            <p class="subtitle">See how the X algorithm ranks competing posts</p>
+            <div class="header-content">
+                <a href="../index.html" class="back-btn">←</a>
+                <h1 class="header-title">Feed Simulator</h1>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('feed')">🏠 Feed</button>
+                <button class="tab" onclick="switchTab('add')">➕ Add Post</button>
+                <button class="tab" onclick="switchTab('weights')">⚖️ Weights</button>
+            </div>
         </header>
 
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('feed')">🏠 Feed</button>
-            <button class="tab" onclick="showTab('add')">➕ Add Post</button>
-            <button class="tab" onclick="showTab('weights')">⚖️ Weights</button>
-        </div>
-
         <!-- Feed Tab -->
-        <div id="tab-feed" class="tab-content">
-            <div class="feed" id="feed"></div>
+        <div id="feed-tab" class="tab-content active">
+            <div id="feed"></div>
         </div>
 
         <!-- Add Post Tab -->
-        <div id="tab-add" class="tab-content" style="display: none;">
-            <div class="add-post-form">
-                <textarea id="postContent" placeholder="What's happening?"></textarea>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>💬 Replies</label>
-                        <input type="number" id="replies" value="10" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>🔁 Reposts</label>
-                        <input type="number" id="reposts" value="5" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>❤️ Likes</label>
-                        <input type="number" id="likes" value="50" min="0">
+        <div id="add-tab" class="tab-content">
+            <div class="add-form">
+                <div class="compose-area">
+                    <div class="avatar">👤</div>
+                    <div style="flex: 1;">
+                        <textarea id="postContent" placeholder="What's happening?"></textarea>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>👤 Profile Clicks</label>
-                        <input type="number" id="profileClicks" value="3" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>🔖 Bookmarks</label>
-                        <input type="number" id="bookmarks" value="2" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>📤 Shares</label>
-                        <input type="number" id="shares" value="1" min="0">
+                <div class="form-section">
+                    <div class="form-label">📊 Engagement Metrics</div>
+                    <div class="metrics-grid">
+                        <div class="metric-input">
+                            <label>💬 Replies</label>
+                            <input type="number" id="replies" value="10" min="0">
+                        </div>
+                        <div class="metric-input">
+                            <label>🔁 Reposts</label>
+                            <input type="number" id="reposts" value="5" min="0">
+                        </div>
+                        <div class="metric-input">
+                            <label>❤️ Likes</label>
+                            <input type="number" id="likes" value="50" min="0">
+                        </div>
+                        <div class="metric-input">
+                            <label>👤 Profile Clicks</label>
+                            <input type="number" id="profileClicks" value="3" min="0">
+                        </div>
+                        <div class="metric-input">
+                            <label>🔖 Bookmarks</label>
+                            <input type="number" id="bookmarks" value="2" min="0">
+                        </div>
+                        <div class="metric-input">
+                            <label>📤 Shares</label>
+                            <input type="number" id="shares" value="1" min="0">
+                        </div>
                     </div>
                 </div>
 
-                <div class="checkbox-row">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="hasVideo">
-                        🎬 Has Video
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="hasImage" checked>
-                        🖼️ Has Image
-                    </label>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="hasLink">
-                        🔗 Has Link
-                    </label>
+                <div class="form-section">
+                    <div class="form-label">📎 Media & Links</div>
+                    <div class="toggle-row">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="hasVideo">
+                            <span>🎬 Has Video</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="hasImage" checked>
+                            <span>🖼️ Has Image</span>
+                        </label>
+                        <label class="toggle-label">
+                            <input type="checkbox" id="hasLink">
+                            <span>🔗 Has Link</span>
+                        </label>
+                    </div>
                 </div>
 
-                <button class="btn" onclick="addPost()">Add to Feed</button>
+                <button class="submit-btn" onclick="addPost()">Add to Feed</button>
             </div>
         </div>
 
         <!-- Weights Tab -->
-        <div id="tab-weights" class="tab-content" style="display: none;">
-            <div class="algo-info">
-                <div class="algo-title">⚖️ Official Algorithm Weights</div>
-                <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">
-                    From the actual X algorithm source code (params.rs)
-                </p>
-                <div class="weight-grid">
-                    <div class="weight-item">
-                        <span>💬 Reply</span>
-                        <span class="weight-positive">×27.0</span>
+        <div id="weights-tab" class="tab-content">
+            <div class="weights-section">
+                <div class="weight-category">
+                    <div class="weight-category-title">✅ Positive Signals</div>
+                    <div class="weight-grid">
+                        <div class="weight-item">
+                            <span class="weight-label">💬 Reply</span>
+                            <span class="weight-value positive">×27.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">👤 Profile Click</span>
+                            <span class="weight-value positive">×12.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🔖 Bookmark</span>
+                            <span class="weight-value positive">×4.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">👥 Follow</span>
+                            <span class="weight-value positive">×4.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">💬 Quote</span>
+                            <span class="weight-value positive">×2.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">📤 DM Share</span>
+                            <span class="weight-value positive">×2.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">❤️ Like</span>
+                            <span class="weight-value positive">×1.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🔁 Repost</span>
+                            <span class="weight-value positive">×1.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🎬 Video View</span>
+                            <span class="weight-value positive">×0.3</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🖼️ Image Expand</span>
+                            <span class="weight-value positive">×0.5</span>
+                        </div>
                     </div>
-                    <div class="weight-item">
-                        <span>👤 Profile Click</span>
-                        <span class="weight-positive">×12.0</span>
+                </div>
+
+                <div class="weight-category">
+                    <div class="weight-category-title">❌ Negative Signals</div>
+                    <div class="weight-grid">
+                        <div class="weight-item">
+                            <span class="weight-label">😴 Not Interested</span>
+                            <span class="weight-value negative">×-74.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🔇 Mute</span>
+                            <span class="weight-value negative">×-50.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🚫 Block</span>
+                            <span class="weight-value negative">×-150.0</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">⚠️ Report</span>
+                            <span class="weight-value negative">×-369.0</span>
+                        </div>
                     </div>
-                    <div class="weight-item">
-                        <span>❤️ Like</span>
-                        <span class="weight-positive">×1.0</span>
-                    </div>
-                    <div class="weight-item">
-                        <span>🔁 Repost</span>
-                        <span class="weight-positive">×1.0</span>
-                    </div>
-                    <div class="weight-item">
-                        <span>🎬 Video View</span>
-                        <span class="weight-positive">×0.3</span>
-                    </div>
-                    <div class="weight-item">
-                        <span>🔖 Bookmark</span>
-                        <span class="weight-positive">×1.0</span>
-                    </div>
-                    <div class="weight-item">
-                        <span>😴 Not Interested</span>
-                        <span class="weight-negative">×-74.0</span>
-                    </div>
-                    <div class="weight-item">
-                        <span>🚫 Report</span>
-                        <span class="weight-negative">×-369.0</span>
+                </div>
+
+                <div class="weight-category">
+                    <div class="weight-category-title">⚙️ Modifiers</div>
+                    <div class="weight-grid">
+                        <div class="weight-item">
+                            <span class="weight-label">🔗 Link Penalty</span>
+                            <span class="weight-value negative">-90%</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">👤 Author Diversity</span>
+                            <span class="weight-value negative">×0.8/post</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">⏰ Freshness Decay</span>
+                            <span class="weight-value negative">6h half-life</span>
+                        </div>
+                        <div class="weight-item">
+                            <span class="weight-label">🌐 OON Factor</span>
+                            <span class="weight-value negative">×0.7</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -500,23 +655,30 @@
     </div>
 
     <script>
-        // Algorithm weights from params.rs
         const WEIGHTS = {
             reply: 27.0,
             profileClick: 12.0,
             like: 1.0,
             repost: 1.0,
             videoView: 0.3,
-            bookmark: 1.0,
-            share: 1.0,
-            notInterested: -74.0,
-            report: -369.0
+            bookmark: 4.0,
+            share: 2.0
         };
 
-        // Sample posts
         let posts = [
             {
                 id: 1,
+                author: 'Builder',
+                handle: '@builder',
+                avatar: '🔨',
+                content: 'Unpopular opinion:\n\nMost "productivity hacks" are just procrastination with extra steps.\n\nWhat actually works?\n\nDo the thing. Now. No system required.\n\nAgree or disagree? 👇',
+                hasVideo: false,
+                hasImage: false,
+                hasLink: false,
+                metrics: { replies: 567, reposts: 120, likes: 890, profileClicks: 89, bookmarks: 78, shares: 45 }
+            },
+            {
+                id: 2,
                 author: 'Tech Insider',
                 handle: '@techinsider',
                 avatar: '🤖',
@@ -527,7 +689,7 @@
                 metrics: { replies: 245, reposts: 89, likes: 1200, profileClicks: 45, bookmarks: 320, shares: 28 }
             },
             {
-                id: 2,
+                id: 3,
                 author: 'Startup Founder',
                 handle: '@startupfounder',
                 avatar: '🚀',
@@ -536,24 +698,11 @@
                 hasImage: true,
                 hasLink: true,
                 metrics: { replies: 12, reposts: 3, likes: 45, profileClicks: 8, bookmarks: 2, shares: 1 }
-            },
-            {
-                id: 3,
-                author: 'Builder',
-                handle: '@builder',
-                avatar: '🔨',
-                content: 'Unpopular opinion:\n\nMost "productivity hacks" are just procrastination with extra steps.\n\nWhat actually works?\n\nDo the thing. Now. No system required.\n\nAgree or disagree? 👇',
-                hasVideo: false,
-                hasImage: false,
-                hasLink: false,
-                metrics: { replies: 567, reposts: 120, likes: 890, profileClicks: 89, bookmarks: 78, shares: 45 }
             }
         ];
 
         function calculateScore(post) {
             const m = post.metrics;
-
-            // Base score from engagement
             let score =
                 (m.replies * WEIGHTS.reply) +
                 (m.profileClicks * WEIGHTS.profileClick) +
@@ -562,21 +711,18 @@
                 (m.bookmarks * WEIGHTS.bookmark) +
                 (m.shares * WEIGHTS.share);
 
-            // Video bonus
             if (post.hasVideo) {
                 score += m.likes * 0.5 * WEIGHTS.videoView;
             }
 
-            // Link penalty (simulated)
             if (post.hasLink) {
-                score *= 0.1; // 90% reduction
+                score *= 0.1;
             }
 
             return score;
         }
 
         function renderFeed() {
-            // Calculate scores and sort
             const scoredPosts = posts.map(post => ({
                 ...post,
                 score: calculateScore(post)
@@ -585,53 +731,51 @@
             const feedEl = document.getElementById('feed');
             feedEl.innerHTML = scoredPosts.map((post, index) => `
                 <div class="post" onclick="toggleScore(${post.id})">
-                    <div class="post-header">
-                        <div class="post-author">
+                    <div class="post-container">
+                        <div class="post-rank">#${index + 1}</div>
+                        <div class="post-header">
                             <div class="avatar">${post.avatar}</div>
-                            <div class="author-info">
-                                <span class="author-name">${post.author}</span>
-                                <span class="author-handle">${post.handle}</span>
+                            <div class="post-content">
+                                <div class="post-meta">
+                                    <span class="post-author">${post.author}</span>
+                                    <span class="post-handle">${post.handle}</span>
+                                </div>
+                                <div class="post-text">${post.content}</div>
+                                ${post.hasImage || post.hasVideo ? `
+                                    <div class="post-media">${post.hasVideo ? '🎬' : '🖼️'}</div>
+                                ` : ''}
+                                <div class="post-actions">
+                                    <span class="post-action">💬 ${post.metrics.replies}</span>
+                                    <span class="post-action">🔁 ${post.metrics.reposts}</span>
+                                    <span class="post-action">❤️ ${post.metrics.likes}</span>
+                                    <span class="post-action">🔖 ${post.metrics.bookmarks}</span>
+                                </div>
                             </div>
                         </div>
-                        <div class="post-rank">#${index + 1}</div>
                     </div>
-                    
-                    <div class="post-content">${post.content}</div>
-                    
-                    ${post.hasImage || post.hasVideo ? `
-                        <div class="post-media">${post.hasVideo ? '🎬' : '🖼️'}</div>
-                    ` : ''}
-                    
-                    <div class="post-metrics">
-                        <span class="metric">💬 ${post.metrics.replies}</span>
-                        <span class="metric">🔁 ${post.metrics.reposts}</span>
-                        <span class="metric">❤️ ${post.metrics.likes}</span>
-                        <span class="metric">🔖 ${post.metrics.bookmarks}</span>
-                    </div>
-                    
-                    <div class="post-score" id="score-${post.id}" style="display: none;">
-                        <div class="score-breakdown">
-                            <div class="score-item">
-                                <div class="score-value">+${(post.metrics.replies * WEIGHTS.reply).toFixed(0)}</div>
-                                <div class="score-label">Replies (27x)</div>
+                    <div class="score-breakdown" id="score-${post.id}">
+                        <div class="breakdown-grid">
+                            <div class="breakdown-item">
+                                <div class="breakdown-value">+${(post.metrics.replies * WEIGHTS.reply).toLocaleString()}</div>
+                                <div class="breakdown-label">Replies (27×)</div>
                             </div>
-                            <div class="score-item">
-                                <div class="score-value">+${(post.metrics.profileClicks * WEIGHTS.profileClick).toFixed(0)}</div>
-                                <div class="score-label">Profile Clicks (12x)</div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-value">+${(post.metrics.profileClicks * WEIGHTS.profileClick).toLocaleString()}</div>
+                                <div class="breakdown-label">Profile Clicks (12×)</div>
                             </div>
-                            <div class="score-item">
-                                <div class="score-value">+${(post.metrics.likes * WEIGHTS.like).toFixed(0)}</div>
-                                <div class="score-label">Likes (1x)</div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-value">+${(post.metrics.bookmarks * WEIGHTS.bookmark).toLocaleString()}</div>
+                                <div class="breakdown-label">Bookmarks (4×)</div>
                             </div>
                             ${post.hasLink ? `
-                                <div class="score-item negative">
-                                    <div class="score-value">-90%</div>
-                                    <div class="score-label">Link Penalty</div>
+                                <div class="breakdown-item negative">
+                                    <div class="breakdown-value">-90%</div>
+                                    <div class="breakdown-label">Link Penalty</div>
                                 </div>
                             ` : ''}
                         </div>
                         <div class="total-score">
-                            <div class="total-score-value">${Math.round(post.score).toLocaleString()}</div>
+                            <div class="total-value">${Math.round(post.score).toLocaleString()}</div>
                             <div style="color: var(--text-muted);">Total Score</div>
                         </div>
                     </div>
@@ -641,15 +785,15 @@
 
         function toggleScore(postId) {
             const scoreEl = document.getElementById(`score-${postId}`);
-            scoreEl.style.display = scoreEl.style.display === 'none' ? 'block' : 'none';
+            scoreEl.classList.toggle('visible');
         }
 
-        function showTab(tabName) {
+        function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-
             event.target.classList.add('active');
-            document.getElementById(`tab-${tabName}`).style.display = 'block';
+
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(`${tab}-tab`).classList.add('active');
         }
 
         function addPost() {
@@ -677,18 +821,10 @@
 
             posts.push(newPost);
             renderFeed();
-
-            // Switch to feed tab
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.querySelector('.tab').classList.add('active');
-            document.getElementById('tab-feed').style.display = 'block';
-
-            // Clear form
+            switchTab('feed');
             document.getElementById('postContent').value = '';
         }
 
-        // Initial render
         renderFeed();
     </script>
 </body>

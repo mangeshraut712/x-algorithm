@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Posting Time Optimizer | X Algorithm</title>
+    <meta name="description" content="Find the best time to post on X based on freshness decay and audience patterns.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏰</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --yellow: #ffdc00;
+            --orange: #ff7a00;
+            --pink: #f91880;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Timezone Selector */
+        .select-container {
+            position: relative;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            appearance: none;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .select-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* Heatmap */
+        .heatmap-container {
+            overflow-x: auto;
+        }
+
+        .heatmap {
+            display: grid;
+            grid-template-columns: 60px repeat(24, 1fr);
+            gap: 2px;
+            min-width: 700px;
+        }
+
+        .heatmap-header {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 4px;
+        }
+
+        .heatmap-day {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding: 8px 4px;
+            text-align: right;
+        }
+
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.2);
+            z-index: 5;
+        }
+
+        .heat-0 {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+        }
+
+        .heat-1 {
+            background: rgba(0, 186, 124, 0.2);
+            color: var(--green);
+        }
+
+        .heat-2 {
+            background: rgba(0, 186, 124, 0.4);
+            color: var(--green);
+        }
+
+        .heat-3 {
+            background: rgba(0, 186, 124, 0.6);
+            color: white;
+        }
+
+        .heat-4 {
+            background: rgba(0, 186, 124, 0.8);
+            color: white;
+        }
+
+        .heat-5 {
+            background: var(--green);
+            color: white;
+        }
+
+        /* Results */
+        .result-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .result-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--blue), var(--green));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .result-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .time-slot {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .time-slot:hover {
+            background: rgba(29, 155, 240, 0.1);
+            border-color: var(--blue);
+        }
+
+        .time-slot.best {
+            background: rgba(0, 186, 124, 0.1);
+            border: 2px solid var(--green);
+        }
+
+        .slot-time {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .slot-period {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .slot-score {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        /* Freshness Decay Chart */
+        .decay-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 16px 0;
+        }
+
+        .decay-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--blue), var(--green));
+            border-radius: 4px 4px 0 0;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .decay-bar:hover {
+            opacity: 0.8;
+        }
+
+        .decay-bar::after {
+            content: attr(data-label);
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Tips */
+        .tip {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tip-icon {
+            font-size: 1.5rem;
+        }
+
+        .tip-text {
+            flex: 1;
+        }
+
+        .tip-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .tip-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        footer {
+            padding: 24px 16px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>⏰ Posting Time Optimizer</h1>
+        </header>
+
+        <div class="section">
+            <div class="section-title">🌍 Your Timezone</div>
+            <div class="select-container">
+                <select id="timezone" onchange="updateHeatmap()">
+                    <option value="5.5">India (IST, UTC+5:30)</option>
+                    <option value="-8">US Pacific (PST, UTC-8)</option>
+                    <option value="-5">US Eastern (EST, UTC-5)</option>
+                    <option value="0">UK (GMT, UTC+0)</option>
+                    <option value="1">EU Central (CET, UTC+1)</option>
+                    <option value="8">China/Singapore (UTC+8)</option>
+                    <option value="9">Japan (JST, UTC+9)</option>
+                </select>
+                <span class="select-arrow">▼</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🎯 Best Times to Post</div>
+            <div class="result-card">
+                <div class="result-header">
+                    <div class="result-icon">🏆</div>
+                    <div>
+                        <div class="result-title">Optimal Posting Windows</div>
+                        <div class="result-subtitle">Based on global X activity + freshness decay</div>
+                    </div>
+                </div>
+                <div class="time-slots" id="bestTimes">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📊 Weekly Engagement Heatmap</div>
+            <div class="heatmap-container">
+                <div class="heatmap" id="heatmap">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot heat-0"></div>
+                    <span>Low</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot heat-2"></div>
+                    <span>Medium</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot heat-4"></div>
+                    <span>High</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot heat-5"></div>
+                    <span>Peak</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📉 Freshness Decay Over Time</div>
+            <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 0.9rem;">
+                Posts lose ranking power over time. The algorithm has a ~6 hour half-life.
+            </p>
+            <div class="decay-chart" id="decayChart">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">💡 Timing Tips</div>
+
+            <div class="tip">
+                <span class="tip-icon">🌅</span>
+                <div class="tip-text">
+                    <div class="tip-title">Post During Morning Commute</div>
+                    <div class="tip-desc">7-9 AM in your audience's timezone catches early scrollers</div>
+                </div>
+            </div>
+
+            <div class="tip">
+                <span class="tip-icon">☕</span>
+                <div class="tip-text">
+                    <div class="tip-title">Lunch Break Sweet Spot</div>
+                    <div class="tip-desc">12-1 PM sees high engagement as people take breaks</div>
+                </div>
+            </div>
+
+            <div class="tip">
+                <span class="tip-icon">🌙</span>
+                <div class="tip-text">
+                    <div class="tip-title">Evening Wind-Down</div>
+                    <div class="tip-desc">7-9 PM catches users relaxing after work/dinner</div>
+                </div>
+            </div>
+
+            <div class="tip">
+                <span class="tip-icon">⚡</span>
+                <div class="tip-text">
+                    <div class="tip-title">Space Your Posts 3-4 Hours</div>
+                    <div class="tip-desc">Author Diversity Scorer penalizes rapid posting</div>
+                </div>
+            </div>
+
+            <div class="tip">
+                <span class="tip-icon">📈</span>
+                <div class="tip-text">
+                    <div class="tip-title">First Hour is Critical</div>
+                    <div class="tip-desc">Early engagement signals boost ranking significantly</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        // Base engagement patterns (0-5 scale, peak during US hours)
+        const basePatterns = {
+            Mon: [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 4, 4, 3, 3, 4, 4, 4, 3, 2, 2, 1],
+            Tue: [1, 1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 4, 4, 4, 3, 4, 4, 4, 3, 2, 2, 1],
+            Wed: [1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 4, 4, 4, 3, 4, 4, 4, 3, 2, 2, 1],
+            Thu: [1, 1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 4, 4, 4, 3, 4, 5, 4, 3, 2, 2, 1],
+            Fri: [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 4, 4, 3, 3, 3, 3, 3, 2, 2, 2, 1],
+            Sat: [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 3, 3, 3, 2, 2, 1, 1],
+            Sun: [1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 3, 2, 2, 1]
+        };
+
+        function getTimezoneOffset() {
+            return parseFloat(document.getElementById('timezone').value);
+        }
+
+        function adjustForTimezone(patterns, offset) {
+            const adjusted = {};
+            for (const day of days) {
+                adjusted[day] = [];
+                for (let h = 0; h < 24; h++) {
+                    // Convert from UTC to local
+                    let utcHour = (h - offset + 24) % 24;
+                    adjusted[day][h] = basePatterns[day][Math.floor(utcHour)];
+                }
+            }
+            return adjusted;
+        }
+
+        function generateHeatmap() {
+            const offset = getTimezoneOffset();
+            const patterns = adjustForTimezone(basePatterns, offset);
+            const heatmap = document.getElementById('heatmap');
+
+            let html = '<div class="heatmap-header"></div>';
+            for (let h = 0; h < 24; h++) {
+                html += `<div class="heatmap-header">${h}</div>`;
+            }
+
+            for (const day of days) {
+                html += `<div class="heatmap-day">${day}</div>`;
+                for (let h = 0; h < 24; h++) {
+                    const score = patterns[day][h];
+                    html += `<div class="heatmap-cell heat-${score}" title="${day} ${h}:00 - Score: ${score}/5">${score}</div>`;
+                }
+            }
+
+            heatmap.innerHTML = html;
+        }
+
+        function generateBestTimes() {
+            const offset = getTimezoneOffset();
+            const patterns = adjustForTimezone(basePatterns, offset);
+
+            // Find top 3 time slots
+            const allSlots = [];
+            for (const day of days) {
+                for (let h = 0; h < 24; h++) {
+                    allSlots.push({ day, hour: h, score: patterns[day][h] });
+                }
+            }
+
+            allSlots.sort((a, b) => b.score - a.score);
+
+            // Get unique hours for best times (weekday focus)
+            const uniqueHours = new Set();
+            const bestSlots = [];
+            for (const slot of allSlots) {
+                if (!uniqueHours.has(slot.hour) && slot.day !== 'Sat' && slot.day !== 'Sun') {
+                    uniqueHours.add(slot.hour);
+                    bestSlots.push(slot);
+                    if (bestSlots.length >= 3) break;
+                }
+            }
+
+            const container = document.getElementById('bestTimes');
+            container.innerHTML = bestSlots.map((slot, i) => `
+                <div class="time-slot ${i === 0 ? 'best' : ''}">
+                    <div class="slot-time">${formatHour(slot.hour)}</div>
+                    <div class="slot-period">${getPeriod(slot.hour)}</div>
+                    <div class="slot-score">${i === 0 ? '🏆 Best' : `Score: ${slot.score}/5`}</div>
+                </div>
+            `).join('');
+        }
+
+        function formatHour(h) {
+            if (h === 0) return '12 AM';
+            if (h === 12) return '12 PM';
+            return h > 12 ? `${h - 12} PM` : `${h} AM`;
+        }
+
+        function getPeriod(h) {
+            if (h >= 5 && h < 12) return 'Morning';
+            if (h >= 12 && h < 17) return 'Afternoon';
+            if (h >= 17 && h < 21) return 'Evening';
+            return 'Night';
+        }
+
+        function generateDecayChart() {
+            const container = document.getElementById('decayChart');
+            const hours = [0, 1, 2, 3, 6, 12, 24, 48];
+            const halfLife = 6;
+
+            let html = '';
+            for (let i = 0; i < hours.length; i++) {
+                const h = hours[i];
+                const decay = Math.pow(0.5, h / halfLife);
+                const heightPercent = decay * 100;
+                html += `<div class="decay-bar" style="height: ${heightPercent}%" data-label="${h}h" title="${h} hours: ${Math.round(decay * 100)}% ranking power"></div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateHeatmap() {
+            generateHeatmap();
+            generateBestTimes();
+        }
+
+        // Initial render
+        generateHeatmap();
+        generateBestTimes();
+        generateDecayChart();
+    </script>
+</body>
+
+</html>

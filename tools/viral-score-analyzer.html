@@ -4,14 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Will It Go Viral? | X Algorithm Post Analyzer</title>
+    <title>Post Analyzer | X Algorithm</title>
     <meta name="description"
-        content="Analyze your posts before publishing. Get your viral score based on X's actual algorithm.">
-    <meta property="og:title" content="Will It Go Viral? - X Algorithm Analyzer">
-    <meta property="og:description" content="Get your viral score before you post. Based on X's open-source algorithm.">
-    <meta property="og:type" content="website">
+        content="Analyze your posts before publishing. Get viral score predictions based on the X algorithm.">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -20,832 +18,802 @@
         }
 
         :root {
-            --bg-dark: #0d0d0d;
-            --bg-card: #1a1a1a;
-            --bg-card-hover: #222;
-            --border: #2a2a2a;
-            --text: #ffffff;
-            --text-muted: #888888;
-            --success: #22c55e;
-            --success-bg: #0a2a1a;
-            --danger: #ef4444;
-            --danger-bg: #2a0a0a;
-            --warning: #f59e0b;
-            --warning-bg: #2a1a0a;
-            --primary: #3b82f6;
-            --purple: #8b5cf6;
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --bg-hover: #181818;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --blue-hover: #1a8cd8;
+            --green: #00ba7c;
+            --yellow: #ffdc00;
+            --orange: #ff7a00;
+            --pink: #f91880;
+            --purple: #7856ff;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: var(--bg-dark);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            line-height: 1.6;
         }
 
         .container {
-            max-width: 700px;
+            max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
         }
 
-        /* Navigation */
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            padding: 16px 20px;
-            background: var(--bg-card);
-            border-bottom: 1px solid var(--border);
+        /* Header - X Style */
+        header {
             position: sticky;
             top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
             z-index: 100;
+            border-bottom: 1px solid var(--border);
         }
 
-        .nav-btn {
-            padding: 8px 16px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .nav-btn:hover {
-            background: var(--bg-card-hover);
-            color: var(--text);
-        }
-
-        .nav-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        header {
-            text-align: center;
-            padding: 40px 0 30px;
-        }
-
-        .logo {
-            font-size: 3rem;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .tagline {
-            color: var(--text-muted);
-            font-size: 1rem;
-        }
-
-        /* Tabs Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Cards */
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-weight: 600;
-            margin-bottom: 16px;
+        .header-content {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 32px;
+            padding: 12px 16px;
         }
 
-        /* Input Section */
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 4px solid transparent;
+            transition: all 0.2s;
+            background: transparent;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            font-size: 0.95rem;
+        }
+
+        .tab:hover {
+            background: var(--bg-hover);
+        }
+
+        .tab.active {
+            color: var(--text);
+            font-weight: 700;
+            border-bottom-color: var(--blue);
+        }
+
+        /* Compose Area - Like X */
+        .compose-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compose-area {
+            display: flex;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .compose-input {
+            flex: 1;
+        }
+
         textarea {
             width: 100%;
-            min-height: 150px;
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 1rem;
+            min-height: 120px;
+            background: transparent;
+            border: none;
             color: var(--text);
-            resize: vertical;
+            font-size: 1.2rem;
+            resize: none;
+            outline: none;
             font-family: inherit;
-            line-height: 1.5;
         }
 
         textarea::placeholder {
-            color: #555;
+            color: var(--text-muted);
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: #444;
+        .compose-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .compose-tools {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--blue);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
         }
 
         .char-counter {
-            text-align: right;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             color: var(--text-muted);
-            margin-top: 8px;
         }
 
         .char-counter.warning {
-            color: var(--warning);
+            color: var(--orange);
         }
 
         .char-counter.danger {
-            color: var(--danger);
+            color: var(--pink);
         }
 
-        /* Buttons */
-        .btn {
-            padding: 14px 24px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--purple));
+        .analyze-btn {
+            padding: 10px 24px;
+            background: var(--blue);
             color: white;
-            margin-top: 16px;
+            border: none;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        .analyze-btn:hover:not(:disabled) {
+            background: var(--blue-hover);
         }
 
-        .btn-primary:disabled {
+        .analyze-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .btn-secondary:hover {
-            background: var(--bg-card-hover);
-        }
-
-        .btn-small {
-            padding: 8px 16px;
-            font-size: 0.85rem;
-        }
-
-        /* Results */
-        .results {
+        /* Results Section */
+        .results-section {
             display: none;
-            animation: fadeIn 0.5s ease;
         }
 
-        .results.visible {
+        .results-section.visible {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Post Preview */
+        .post-preview {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .result-header {
+        .post-header {
             display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .result-icon {
-            font-size: 3rem;
-        }
-
-        .result-title-section h2 {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            gap: 12px;
             margin-bottom: 4px;
         }
 
-        .result-title-section h3 {
-            font-size: 1.6rem;
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .post-author {
             font-weight: 700;
         }
 
-        .result-header.success h2,
-        .result-header.success h3 {
-            color: var(--success);
+        .post-handle {
+            color: var(--text-muted);
         }
 
-        .result-header.danger h2,
-        .result-header.danger h3 {
-            color: var(--danger);
+        .post-content {
+            flex: 1;
         }
 
-        .result-header.warning h2,
-        .result-header.warning h3 {
-            color: var(--warning);
-        }
-
-        .post-preview {
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 24px;
-            font-size: 0.95rem;
-            color: #ccc;
-            line-height: 1.6;
+        .post-text {
+            margin-top: 4px;
             white-space: pre-wrap;
-            max-height: 200px;
-            overflow-y: auto;
+            line-height: 1.5;
         }
 
-        .score-card {
-            border-radius: 16px;
-            padding: 32px;
+        /* Score Card */
+        .score-section {
+            padding: 24px 16px;
             text-align: center;
-            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .score-card.success {
-            background: var(--success-bg);
-            border: 1px solid #1a4a2a;
+        .score-ring {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
-        .score-card.danger {
-            background: var(--danger-bg);
-            border: 1px solid #4a1a1a;
-        }
-
-        .score-card.warning {
-            background: var(--warning-bg);
-            border: 1px solid #4a3a1a;
-        }
-
-        .score-label {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 8px;
-        }
-
-        .score-card.success .score-label {
-            color: var(--success);
-        }
-
-        .score-card.danger .score-label {
-            color: var(--danger);
-        }
-
-        .score-card.warning .score-label {
-            color: var(--warning);
+        .score-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 6px;
+            background: conic-gradient(var(--score-color) calc(var(--score) * 3.6deg), var(--border) 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
         }
 
         .score-number {
-            font-size: 4.5rem;
+            font-size: 3.5rem;
             font-weight: 800;
             line-height: 1;
         }
 
-        .score-card.success .score-number {
-            color: var(--success);
-        }
-
-        .score-card.danger .score-number {
-            color: var(--danger);
-        }
-
-        .score-card.warning .score-number {
-            color: var(--warning);
-        }
-
-        .score-max {
-            font-size: 1.3rem;
+        .score-label {
             color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
         }
 
         .score-badge {
             display: inline-block;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            margin-top: 16px;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-weight: 700;
             font-size: 0.9rem;
+            margin-top: 16px;
         }
 
-        .score-card.success .score-badge {
-            background: rgba(34, 197, 94, 0.2);
-            color: var(--success);
+        .score-badge.viral {
+            background: rgba(0, 186, 124, 0.1);
+            color: var(--green);
         }
 
-        .score-card.danger .score-badge {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
+        .score-badge.good {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--blue);
         }
 
-        .score-card.warning .score-badge {
-            background: rgba(245, 158, 11, 0.2);
-            color: var(--warning);
+        .score-badge.average {
+            background: rgba(255, 122, 0, 0.1);
+            color: var(--orange);
         }
 
-        .signals-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 24px;
+        .score-badge.low {
+            background: rgba(249, 24, 128, 0.1);
+            color: var(--pink);
+        }
+
+        /* Signals */
+        .signals-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .signal-header {
+            padding: 16px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
         }
 
         .signal-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 12px;
-            padding: 14px 16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
         }
 
         .signal-icon {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            margin-top: 2px;
         }
 
         .signal-text {
-            font-size: 0.95rem;
-        }
-
-        .prediction-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .prediction-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-
-        .prediction-stats {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            font-size: 1.1rem;
-        }
-
-        .prediction-stats .views {
-            color: var(--success);
-            font-weight: 600;
-        }
-
-        .prediction-stats .likes {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* Action buttons */
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .action-buttons .btn {
             flex: 1;
         }
 
-        /* History Tab */
-        .history-empty {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-muted);
+        .signal-weight {
+            font-weight: 700;
+            font-size: 0.9rem;
         }
 
-        .history-empty-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
+        .signal-weight.positive {
+            color: var(--green);
         }
 
-        .history-list {
+        .signal-weight.negative {
+            color: var(--pink);
+        }
+
+        /* Optimize Section */
+        .optimize-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .optimize-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--green);
+        }
+
+        .optimize-header {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .optimized-text {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .optimize-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .optimize-btn {
+            padding: 10px 20px;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .optimize-btn.primary {
+            background: var(--green);
+            color: white;
+            border: none;
+        }
+
+        .optimize-btn.secondary {
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        /* Prediction */
+        .prediction-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
 
-        .history-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
+        .prediction-card {
+            background: var(--bg-secondary);
             border-radius: 12px;
             padding: 16px;
+            text-align: center;
+        }
+
+        .prediction-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .prediction-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 9999px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background: var(--blue);
+            color: white;
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--blue-hover);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        /* History Tab */
+        .history-section {
+            display: none;
+        }
+
+        .history-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
         }
 
         .history-item:hover {
-            background: var(--bg-card-hover);
-            border-color: #3a3a3a;
+            background: var(--bg-hover);
         }
 
-        .history-item-header {
+        .history-preview {
+            color: var(--text-muted);
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-meta {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
         }
 
         .history-score {
             font-weight: 700;
-            font-size: 1.2rem;
         }
 
-        .history-score.success {
-            color: var(--success);
+        .history-score.high {
+            color: var(--green);
         }
 
-        .history-score.danger {
-            color: var(--danger);
+        .history-score.medium {
+            color: var(--orange);
         }
 
-        .history-score.warning {
-            color: var(--warning);
+        .history-score.low {
+            color: var(--pink);
         }
 
-        .history-date {
-            font-size: 0.8rem;
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
             color: var(--text-muted);
         }
 
-        .history-preview {
-            font-size: 0.9rem;
-            color: #aaa;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .history-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-        }
-
-        .clear-history-btn {
-            margin-top: 20px;
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
         }
 
         /* Compare Tab */
-        .compare-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        @media (max-width: 600px) {
-            .compare-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .compare-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
-        }
-
-        .compare-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 12px;
-            text-align: center;
-        }
-
-        .compare-textarea {
-            min-height: 120px;
-            font-size: 0.9rem;
-        }
-
-        .compare-results {
+        .compare-section {
             display: none;
         }
 
-        .compare-results.visible {
-            display: block;
-        }
-
-        .compare-result-grid {
+        .compare-grid {
             display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 16px;
-            align-items: center;
-            margin-top: 24px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: var(--border);
         }
 
-        .compare-score-card {
+        .compare-column {
+            background: var(--bg);
+        }
+
+        .compare-header {
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compare-content {
+            padding: 16px;
+        }
+
+        .compare-textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .compare-textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .compare-score {
             text-align: center;
             padding: 20px;
-            border-radius: 12px;
         }
 
-        .compare-score-card.winner {
-            background: var(--success-bg);
-            border: 2px solid var(--success);
-        }
-
-        .compare-score-card.loser {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            opacity: 0.7;
-        }
-
-        .compare-score-number {
+        .compare-score-value {
             font-size: 2.5rem;
             font-weight: 800;
         }
 
-        .compare-vs {
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .winner-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: var(--success);
-            color: black;
-            border-radius: 12px;
-            font-size: 0.75rem;
+        .compare-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 9999px;
             font-weight: 700;
-            margin-top: 8px;
+            cursor: pointer;
+            margin: 16px 0;
         }
 
-        /* Footer */
         footer {
+            padding: 24px;
             text-align: center;
-            padding: 40px 20px;
             color: var(--text-muted);
-            font-size: 0.85rem;
         }
 
         footer a {
-            color: var(--primary);
+            color: var(--blue);
             text-decoration: none;
-        }
-
-        /* Responsive */
-        @media (max-width: 480px) {
-            .score-number {
-                font-size: 3.5rem;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            nav {
-                flex-wrap: wrap;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 
 <body>
-    <nav>
-        <button class="nav-btn active" onclick="switchTab('analyze')" id="nav-analyze">✨ Analyze</button>
-        <button class="nav-btn" onclick="switchTab('compare')" id="nav-compare">⚔️ Compare</button>
-        <button class="nav-btn" onclick="switchTab('history')" id="nav-history">📜 History</button>
-    </nav>
-
     <div class="container">
         <header>
-            <div class="logo">🚀</div>
-            <h1>Will It Go Viral?</h1>
-            <p class="tagline">Analyze your post using X's actual algorithm weights</p>
+            <div class="header-content">
+                <a href="../index.html" class="back-btn">←</a>
+                <h1 class="header-title">Post Analyzer</h1>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('analyze')">✍️ Analyze</button>
+                <button class="tab" onclick="switchTab('compare')">⚔️ Compare</button>
+                <button class="tab" onclick="switchTab('history')">📜 History</button>
+            </div>
         </header>
 
-        <!-- ANALYZE TAB -->
-        <div class="tab-content active" id="tab-analyze">
-            <div id="inputSection">
-                <div class="card">
-                    <div class="card-title">📝 Your Post</div>
-                    <textarea id="postInput" placeholder="Ever wonder why some posts get 100K views and others die at 12?
-
-X just open-sourced their algorithm. I read all 15,000+ lines.
-
-Here's what I learned..." oninput="updateCharCount()"></textarea>
-                    <div class="char-counter" id="charCounter">0 / 280</div>
-                    <button class="btn btn-primary" id="analyzeBtn" onclick="analyzePost()">
-                        Analyze Post ✨
-                    </button>
+        <!-- Analyze Tab -->
+        <div id="analyze-tab">
+            <!-- Compose Section -->
+            <div class="compose-section" id="composeSection">
+                <div class="compose-area">
+                    <div class="avatar">👤</div>
+                    <div class="compose-input">
+                        <textarea id="postInput" placeholder="What's happening?" oninput="updateCharCount()"></textarea>
+                        <div class="compose-footer">
+                            <div class="compose-tools">
+                                <button class="tool-btn" title="Image">🖼️</button>
+                                <button class="tool-btn" title="GIF">📸</button>
+                                <button class="tool-btn" title="Poll">📊</button>
+                                <button class="tool-btn" title="Emoji">😊</button>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span class="char-counter" id="charCounter">0 / 280</span>
+                                <button class="analyze-btn" id="analyzeBtn" onclick="analyzePost()"
+                                    disabled>Analyze</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="results" id="results">
-                <div class="result-header" id="resultHeader">
-                    <div class="result-icon" id="resultIcon">✅</div>
-                    <div class="result-title-section">
-                        <h2 id="resultCategory">POSTS THAT POP</h2>
-                        <h3 id="resultTitle">High Score</h3>
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Post Preview -->
+                <div class="post-preview">
+                    <div class="post-header">
+                        <div class="avatar">👤</div>
+                        <div class="post-content">
+                            <div class="post-meta">
+                                <span class="post-author">You</span>
+                                <span class="post-handle">@you</span>
+                                <span class="post-handle">· Draft</span>
+                            </div>
+                            <div class="post-text" id="postPreview"></div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="post-preview" id="postPreview"></div>
-
-                <div class="score-card" id="scoreCard">
-                    <div class="score-label">VIRAL SCORE</div>
-                    <div>
-                        <span class="score-number" id="scoreNumber">89</span>
-                        <span class="score-max">/ 100</span>
+                <!-- Score -->
+                <div class="score-section">
+                    <div class="score-ring" id="scoreRing" style="--score: 0; --score-color: var(--pink);">
+                        <span class="score-number" id="scoreNumber">0</span>
+                        <span class="score-label">/ 100</span>
                     </div>
-                    <div class="score-badge" id="scoreBadge">VIRAL POTENTIAL 🚀</div>
+                    <div class="score-badge low" id="scoreBadge">NEEDS WORK</div>
                 </div>
 
-                <div class="signals-list" id="signalsList"></div>
+                <!-- Signals -->
+                <div class="signals-section">
+                    <div class="signal-header">📊 Signal Analysis</div>
+                    <div id="signalsList"></div>
+                </div>
 
-                <!-- Optimization Suggestions -->
-                <div class="card" id="optimizeCard" style="display: none; border-color: var(--success);">
-                    <div class="card-title" style="color: var(--success);">✨ Optimized Version</div>
-                    <div id="optimizedPost"
-                        style="background: var(--bg-dark); padding: 16px; border-radius: 12px; margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6;">
-                    </div>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-secondary btn-small" onclick="copyOptimized()">📋 Copy</button>
-                        <button class="btn btn-secondary btn-small" onclick="analyzeOptimized()">🔄 Analyze
-                            This</button>
+                <!-- Optimize -->
+                <div class="optimize-section" id="optimizeSection" style="display: none;">
+                    <div class="optimize-card">
+                        <div class="optimize-header">✨ Optimized Version</div>
+                        <div class="optimized-text" id="optimizedText"></div>
+                        <div class="optimize-actions">
+                            <button class="optimize-btn primary" onclick="copyOptimized()">📋 Copy</button>
+                            <button class="optimize-btn secondary" onclick="useOptimized()">🔄 Analyze This</button>
+                        </div>
                     </div>
                 </div>
 
-                <button class="btn btn-primary" onclick="optimizePost()" id="optimizeBtn"
-                    style="margin-bottom: 20px; background: linear-gradient(135deg, var(--success), #10b981);">
+                <button class="action-btn primary" id="optimizeBtn" onclick="optimizePost()"
+                    style="margin: 16px; width: calc(100% - 32px);">
                     ✨ Optimize My Post
                 </button>
 
-                <div class="prediction-card">
-                    <div class="prediction-label">Predicted Performance</div>
-                    <div class="prediction-stats">
-                        <span class="views" id="predViews">8,400 views</span>
-                        <span>·</span>
-                        <span class="likes" id="predLikes">340 likes</span>
+                <!-- Predictions -->
+                <div class="prediction-section">
+                    <div class="prediction-grid">
+                        <div class="prediction-card">
+                            <div class="prediction-value" id="predViews">0</div>
+                            <div class="prediction-label">Est. Views</div>
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-value" id="predLikes">0</div>
+                            <div class="prediction-label">Est. Likes</div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Actions -->
                 <div class="action-buttons">
-                    <button class="btn btn-secondary" onclick="saveToHistory()">
-                        💾 Save
-                    </button>
-                    <button class="btn btn-secondary" onclick="resetAnalyzer()">
-                        ✍️ New Post
-                    </button>
+                    <button class="action-btn secondary" onclick="saveToHistory()">💾 Save</button>
+                    <button class="action-btn secondary" onclick="resetAnalyzer()">✍️ New Post</button>
                 </div>
             </div>
         </div>
 
-        <!-- COMPARE TAB -->
-        <div class="tab-content" id="tab-compare">
-            <div class="card">
-                <div class="card-title">⚔️ A/B Test Your Posts</div>
-                <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
-                    Compare two versions to see which will perform better
-                </p>
-
-                <div class="compare-grid">
-                    <div class="compare-card">
-                        <div class="compare-label">Version A</div>
-                        <textarea class="compare-textarea" id="compareA"
-                            placeholder="First version of your post..."></textarea>
-                    </div>
-                    <div class="compare-card">
-                        <div class="compare-label">Version B</div>
-                        <textarea class="compare-textarea" id="compareB"
-                            placeholder="Alternative version..."></textarea>
+        <!-- Compare Tab -->
+        <div id="compare-tab" class="compare-section">
+            <div class="compare-grid">
+                <div class="compare-column">
+                    <div class="compare-header">Version A</div>
+                    <div class="compare-content">
+                        <textarea class="compare-textarea" id="compareA" placeholder="Paste first version..."
+                            oninput="updateCompare()"></textarea>
+                        <div class="compare-score">
+                            <div class="compare-score-value" id="scoreA">-</div>
+                        </div>
                     </div>
                 </div>
-
-                <button class="btn btn-primary" onclick="comparePosts()">
-                    Compare Posts ⚔️
-                </button>
+                <div class="compare-column">
+                    <div class="compare-header">Version B</div>
+                    <div class="compare-content">
+                        <textarea class="compare-textarea" id="compareB" placeholder="Paste second version..."
+                            oninput="updateCompare()"></textarea>
+                        <div class="compare-score">
+                            <div class="compare-score-value" id="scoreB">-</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="compare-results" id="compareResults">
-                <div class="compare-result-grid">
-                    <div class="compare-score-card" id="compareCardA">
-                        <div class="compare-label">Version A</div>
-                        <div class="compare-score-number" id="compareScoreA">72</div>
-                        <div id="compareBadgeA"></div>
-                    </div>
-                    <div class="compare-vs">VS</div>
-                    <div class="compare-score-card" id="compareCardB">
-                        <div class="compare-label">Version B</div>
-                        <div class="compare-score-number" id="compareScoreB">85</div>
-                        <div id="compareBadgeB"></div>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-top: 24px;">
-                    <div class="card-title">💡 Recommendation</div>
-                    <p id="compareRecommendation" style="color: #ccc;"></p>
-                </div>
+            <div style="padding: 16px; text-align: center;">
+                <div id="compareResult" style="font-size: 1.1rem; margin-top: 12px;"></div>
             </div>
         </div>
 
-        <!-- HISTORY TAB -->
-        <div class="tab-content" id="tab-history">
-            <div id="historyEmpty" class="history-empty">
-                <div class="history-empty-icon">📭</div>
-                <h3>No saved posts yet</h3>
-                <p style="margin-top: 8px;">Analyze posts and save them to track your progress</p>
-            </div>
-
-            <div id="historyContent" style="display: none;">
-                <div class="card">
-                    <div class="card-title">📊 Your Post History</div>
-                    <div class="history-list" id="historyList"></div>
-                    <button class="btn btn-secondary btn-small clear-history-btn" onclick="clearHistory()">
-                        🗑️ Clear History
-                    </button>
-                </div>
-
-                <div class="card">
-                    <div class="card-title">📈 Stats</div>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-                        <div>
-                            <div style="font-size: 2rem; font-weight: 700;" id="statTotal">0</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Posts Analyzed</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="statAvg">0</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Avg Score</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="statBest">0</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Best Score</div>
-                        </div>
-                    </div>
-                </div>
+        <!-- History Tab -->
+        <div id="history-tab" class="history-section">
+            <div id="historyList"></div>
+            <div class="empty-state" id="emptyHistory">
+                <div class="empty-icon">📜</div>
+                <div>No saved posts yet</div>
+                <div style="margin-top: 8px;">Analyze a post and save it to see it here</div>
             </div>
         </div>
 
         <footer>
-            <p>Based on the <a href="https://github.com/xai-org/x-algorithm" target="_blank">open-source X algorithm</a>
-            </p>
-            <p style="margin-top: 8px;">Reply weight: 27x · Profile click: 12x · Not interested: -74x</p>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
         </footer>
     </div>
 
     <script>
-        // State
         let currentAnalysis = null;
-        let history = JSON.parse(localStorage.getItem('viralScoreHistory') || '[]');
+        let history = JSON.parse(localStorage.getItem('postHistory') || '[]');
 
-        // Tab switching
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-
-            document.getElementById('tab-' + tabName).classList.add('active');
-            document.getElementById('nav-' + tabName).classList.add('active');
-
-            if (tabName === 'history') {
-                renderHistory();
-            }
-        }
-
-        // Character count
         function updateCharCount() {
             const text = document.getElementById('postInput').value;
             const counter = document.getElementById('charCounter');
@@ -860,12 +828,11 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             document.getElementById('analyzeBtn').disabled = len === 0;
         }
 
-        // Analyze signals - Updated based on real @mrcommando712 post performance
         function analyzeSignals(text) {
             const signals = [];
             const lowerText = text.toLowerCase();
 
-            // HOOK DETECTION - First line is CRITICAL (improved detection)
+            // HOOK DETECTION
             const firstLine = text.split('\n')[0].trim();
             const strongHookPatterns = [
                 /^(i built|i made|i spent|i lost|i earned|just launched|breaking|unpopular opinion|hot take|stop doing|here's why|the truth about)/i,
@@ -876,22 +843,22 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             const hasWeakHook = firstLine.endsWith('?') || firstLine.length < 50;
 
             if (hasStrongHook) {
-                signals.push({ positive: true, text: 'Strong hook (first line grabs attention)', weight: 18 });
+                signals.push({ positive: true, text: 'Strong hook - grabs attention', weight: 18 });
             } else if (hasWeakHook) {
                 signals.push({ positive: true, text: 'Decent hook', weight: 8 });
             } else {
-                signals.push({ positive: false, text: 'Weak hook (doesn\'t grab attention)', weight: -5 });
+                signals.push({ positive: false, text: 'Weak hook - doesn\'t grab attention', weight: -5 });
             }
 
-            // QUESTION DETECTION - 27x weight in the algorithm!
+            // QUESTION
             const questionCount = (text.match(/\?/g) || []).length;
             if (questionCount >= 1) {
-                signals.push({ positive: true, text: `Asks question (${questionCount}x = engagement driver)`, weight: 15 });
+                signals.push({ positive: true, text: `Contains question (drives replies)`, weight: 15 });
             } else {
-                signals.push({ positive: false, text: 'No question (missing 27x engagement boost)', weight: -8 });
+                signals.push({ positive: false, text: 'No question (missing 27x reply boost)', weight: -8 });
             }
 
-            // FORMATTING - Line breaks matter
+            // FORMATTING
             const lineCount = text.split('\n').filter(l => l.trim()).length;
             if (lineCount >= 4) {
                 signals.push({ positive: true, text: 'Great formatting (easy to scan)', weight: 12 });
@@ -901,72 +868,45 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
                 signals.push({ positive: false, text: 'Wall of text (hard to read)', weight: -10 });
             }
 
-            // DATA & SPECIFICS - Numbers build credibility
+            // DATA
             const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
-            const dataMatch = text.match(/\$[\d,]+[kKmM]?|\d+[%]|\d{1,3}[,]\d{3}/);
             if (hasData) {
-                signals.push({ positive: true, text: `Has data (${dataMatch ? dataMatch[0] : 'numbers'}) = credibility`, weight: 10 });
+                signals.push({ positive: true, text: 'Contains data = credibility', weight: 10 });
             }
 
-            // CONTROVERSY / STRONG OPINION
-            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie|most people don't)/i.test(text);
+            // CONTROVERSY
+            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie)/i.test(text);
             if (hasControversy) {
                 signals.push({ positive: true, text: 'Takes a stance (drives engagement)', weight: 10 });
             }
 
-            // CTA - Call to action
+            // CTA
             const strongCTA = /(follow for|save this|bookmark|reply below|drop a|what's your|thoughts\?|agree\?)/i.test(text);
-            const weakCTA = /(check|link|try it|comment)/i.test(text);
             if (strongCTA) {
                 signals.push({ positive: true, text: 'Strong CTA (drives replies)', weight: 12 });
-            } else if (weakCTA) {
-                signals.push({ positive: true, text: 'Has CTA', weight: 5 });
             } else {
                 signals.push({ positive: false, text: 'No CTA (no engagement prompt)', weight: -5 });
             }
 
-            // TAGGING - Relevant mentions get attention
-            const hasMentions = /@\w+/.test(text);
+            // TAGGING
             const relevantMentions = /@(elonmusk|xai|gaborrosenfeld|naval|paulg|sama|pmarca)/i.test(text);
             if (relevantMentions) {
                 signals.push({ positive: true, text: 'Tags relevant account (visibility boost)', weight: 12 });
-            } else if (hasMentions) {
-                signals.push({ positive: true, text: 'Has @mentions', weight: 4 });
             }
 
-            // THREAD INDICATOR
-            const hasThread = text.includes('🧵') || lowerText.includes('thread') || /\b1[\.\/]\s/m.test(text);
+            // THREAD
+            const hasThread = text.includes('🧵') || lowerText.includes('thread');
             if (hasThread) {
-                signals.push({ positive: true, text: 'Thread format 🧵 (higher dwell time)', weight: 10 });
+                signals.push({ positive: true, text: 'Thread format (higher dwell time)', weight: 10 });
             }
 
-            // LISTS / STRUCTURE
-            const hasList = /^\s*[\d\-•]\s/m.test(text);
-            if (hasList) {
-                signals.push({ positive: true, text: 'Structured list (scannable)', weight: 6 });
-            }
-
-            // EMOJI (1-3 is optimal)
-            const emojiCount = (text.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
-            if (emojiCount >= 1 && emojiCount <= 3) {
-                signals.push({ positive: true, text: 'Good emoji use', weight: 4 });
-            } else if (emojiCount > 5) {
-                signals.push({ positive: false, text: 'Too many emojis (looks spammy)', weight: -5 });
-            }
-
-            // === NEGATIVE SIGNALS (penalties) ===
-
-            // LINK PENALTY - This is HUGE (X suppresses links -90% reach)
-            const hasLink = /(https?:\/\/|www\.|\.com\/|\.xyz\/|\.io\/|\.github\.)/i.test(text);
-            const hasLinkInBioRef = /(link in bio|link in reply|link below|👇)/i.test(text);
+            // LINK PENALTY
+            const hasLink = /(https?:\/\/|www\.|\.\com\/|\.\xyz\/|\.\io\/)/i.test(text);
             if (hasLink) {
-                signals.push({ positive: false, text: '⚠️ LINK IN POST (-40) - Major reach penalty!', weight: -40 });
-                if (!hasLinkInBioRef) {
-                    signals.push({ positive: false, text: 'Tip: Say "link in reply 👇" instead', weight: 0 });
-                }
+                signals.push({ positive: false, text: '⚠️ LINK IN POST - Major reach penalty!', weight: -40 });
             }
 
-            // HASHTAG OVERLOAD
+            // HASHTAGS
             const hashtagCount = (text.match(/#\w+/g) || []).length;
             if (hashtagCount > 3) {
                 signals.push({ positive: false, text: `Too many hashtags (${hashtagCount}) - looks spammy`, weight: -12 });
@@ -974,325 +914,244 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
                 signals.push({ positive: false, text: `${hashtagCount} hashtags (1 max is optimal)`, weight: -3 });
             }
 
-            // LENGTH ISSUES
+            // LENGTH
             if (text.length < 50) {
                 signals.push({ positive: false, text: 'Too short (lacks substance)', weight: -15 });
             }
-            if (text.length > 280) {
-                signals.push({ positive: false, text: 'Over 280 chars (thread or trim)', weight: -5 });
-            }
 
-            // GENERIC PHRASES (low engagement patterns)
+            // GENERIC PHRASES
             const genericPhrases = /(check it out|let me know|link in bio|just launched|really proud|excited to share|happy to announce)/i.test(text);
             if (genericPhrases) {
-                signals.push({ positive: false, text: 'Generic phrase (overused, low engagement)', weight: -8 });
+                signals.push({ positive: false, text: 'Generic phrase (low engagement pattern)', weight: -8 });
             }
 
             return signals;
         }
 
         function calculateScore(signals) {
-            // Base score of 45 - you need to earn points, but not start too low
             let score = 45;
-
-            signals.forEach(s => {
-                if (s.positive) {
-                    score += s.weight;
-                } else {
-                    score += s.weight; // weights are already negative
-                }
-            });
-
-            // Clamp between 0-100
+            signals.forEach(s => score += s.weight);
             return Math.max(0, Math.min(100, Math.round(score)));
         }
 
-        // Analyze post
         function analyzePost() {
             const text = document.getElementById('postInput').value.trim();
             if (!text) return;
 
-            document.getElementById('inputSection').style.display = 'none';
-            document.getElementById('results').classList.add('visible');
+            document.getElementById('composeSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.add('visible');
             document.getElementById('postPreview').textContent = text;
+            document.getElementById('optimizeSection').style.display = 'none';
+            document.getElementById('optimizeBtn').style.display = 'block';
 
             const signals = analyzeSignals(text);
             const score = calculateScore(signals);
 
             currentAnalysis = { text, signals, score, date: new Date().toISOString() };
-            updateResultsUI(score, signals);
-        }
 
-        function updateResultsUI(score, signals) {
-            const header = document.getElementById('resultHeader');
-            const scoreCard = document.getElementById('scoreCard');
-            const icon = document.getElementById('resultIcon');
-            const category = document.getElementById('resultCategory');
-            const title = document.getElementById('resultTitle');
-            const badge = document.getElementById('scoreBadge');
+            // Update score display
+            const scoreRing = document.getElementById('scoreRing');
+            const scoreNumber = document.getElementById('scoreNumber');
+            const scoreBadge = document.getElementById('scoreBadge');
 
-            let tier;
+            scoreNumber.textContent = score;
+            scoreRing.style.setProperty('--score', score);
+
+            let tier, color, badgeClass;
             if (score >= 75) {
-                tier = 'success';
-                icon.textContent = '✅';
-                category.textContent = 'POSTS THAT POP';
-                title.textContent = 'High Score';
-                badge.textContent = 'VIRAL POTENTIAL 🚀';
-            } else if (score >= 50) {
-                tier = 'warning';
-                icon.textContent = '⚠️';
-                category.textContent = 'ROOM TO IMPROVE';
-                title.textContent = 'Average Score';
-                badge.textContent = 'NEEDS TWEAKS 🔧';
+                tier = '🚀 VIRAL POTENTIAL';
+                color = 'var(--green)';
+                badgeClass = 'viral';
+            } else if (score >= 55) {
+                tier = '✅ GOOD POST';
+                color = 'var(--blue)';
+                badgeClass = 'good';
+            } else if (score >= 35) {
+                tier = '⚠️ AVERAGE';
+                color = 'var(--orange)';
+                badgeClass = 'average';
             } else {
-                tier = 'danger';
-                icon.textContent = '❌';
-                category.textContent = 'POSTS THAT FLOP';
-                title.textContent = 'Low Score';
-                badge.textContent = 'NEEDS WORK 🔧';
+                tier = '❌ NEEDS WORK';
+                color = 'var(--pink)';
+                badgeClass = 'low';
             }
 
-            header.className = `result-header ${tier}`;
-            scoreCard.className = `score-card ${tier}`;
-            document.getElementById('scoreNumber').textContent = score;
+            scoreRing.style.setProperty('--score-color', color);
+            scoreBadge.textContent = tier;
+            scoreBadge.className = `score-badge ${badgeClass}`;
 
+            // Render signals
             document.getElementById('signalsList').innerHTML = signals.map(s => `
                 <div class="signal-item">
                     <span class="signal-icon">${s.positive ? '✅' : '❌'}</span>
                     <span class="signal-text">${s.text}</span>
+                    <span class="signal-weight ${s.positive ? 'positive' : 'negative'}">${s.weight > 0 ? '+' : ''}${s.weight}</span>
                 </div>
             `).join('');
 
+            // Predictions
             const baseViews = score >= 75 ? 5000 : (score >= 50 ? 500 : 50);
             const views = Math.round(baseViews * (score / 50));
             const likes = Math.round(views * 0.04);
-            document.getElementById('predViews').textContent = views.toLocaleString() + ' views';
-            document.getElementById('predLikes').textContent = likes.toLocaleString() + ' likes';
-
-            // Reset optimize card
-            document.getElementById('optimizeCard').style.display = 'none';
+            document.getElementById('predViews').textContent = views.toLocaleString();
+            document.getElementById('predLikes').textContent = likes.toLocaleString();
         }
 
-        function resetAnalyzer() {
-            document.getElementById('inputSection').style.display = 'block';
-            document.getElementById('results').classList.remove('visible');
-            document.getElementById('postInput').value = '';
-            document.getElementById('optimizeCard').style.display = 'none';
-            currentAnalysis = null;
-            updateCharCount();
-        }
-
-        // POST OPTIMIZATION ENGINE
         function optimizePost() {
             if (!currentAnalysis) return;
 
-            const original = currentAnalysis.text;
-            let optimized = original;
+            let optimized = currentAnalysis.text;
 
-            // 1. Remove links and add "link in reply" note
-            const hasLink = /(https?:\/\/[^\s]+)/gi.test(original);
+            // Remove links
+            const hasLink = /(https?:\/\/[^\s]+)/gi.test(optimized);
             if (hasLink) {
-                optimized = optimized.replace(/(https?:\/\/[^\s]+)/gi, '');
-                optimized = optimized.trim();
+                optimized = optimized.replace(/(https?:\/\/[^\s]+)/gi, '').trim();
                 if (!optimized.includes('👇')) {
                     optimized += '\n\n(Link in reply 👇)';
                 }
             }
 
-            // 2. Improve the hook (first line)
+            // Improve hook
             const lines = optimized.split('\n').filter(l => l.trim());
-            if (lines.length > 0) {
-                const firstLine = lines[0];
+            const hookTransforms = [
+                { pattern: /^(New Year Update:|Update:|Announcement:)/i, replacement: 'I just shipped something special:' },
+                { pattern: /^(Just launched|Excited to share|Happy to announce)/i, replacement: 'I built' },
+                { pattern: /^(Check out|Look at|See my)/i, replacement: 'I created' },
+            ];
+            hookTransforms.forEach(t => {
+                if (t.pattern.test(lines[0])) {
+                    lines[0] = lines[0].replace(t.pattern, t.replacement);
+                }
+            });
+            optimized = lines.join('\n\n');
 
-                // Transform generic openings
-                const hookTransforms = [
-                    {
-                        pattern: /^(New Year Update:|Update:|Announcement:)/i,
-                        replacement: 'I just shipped something special:'
-                    },
-                    {
-                        pattern: /^(Just launched|Excited to share|Happy to announce)/i,
-                        replacement: 'I built'
-                    },
-                    {
-                        pattern: /^(Check out|Look at|See my)/i,
-                        replacement: 'I created'
-                    },
-                ];
-
-                hookTransforms.forEach(t => {
-                    if (t.pattern.test(lines[0])) {
-                        lines[0] = lines[0].replace(t.pattern, t.replacement);
-                    }
-                });
-
-                optimized = lines.join('\n\n');
-            }
-
-            // 3. Add question if missing
+            // Add question
             if (!optimized.includes('?')) {
-                const questions = [
-                    "What do you think?",
-                    "Have you tried something similar?",
-                    "What's your experience with this?",
-                    "Agree or disagree?",
-                    "What would you add?"
-                ];
-                const randomQ = questions[Math.floor(Math.random() * questions.length)];
-                optimized += `\n\n${randomQ} 👇`;
+                const questions = ["What do you think?", "Have you tried something similar?", "Agree or disagree?"];
+                optimized += `\n\n${questions[Math.floor(Math.random() * questions.length)]} 👇`;
             }
 
-            // 4. Add formatting if wall of text
-            if (optimized.split('\n').filter(l => l.trim()).length < 3 && optimized.length > 100) {
-                // Add line breaks after sentences
-                optimized = optimized.replace(/\. ([A-Z])/g, '.\n\n$1');
-            }
-
-            // 5. Clean up extra whitespace
             optimized = optimized.replace(/\n{3,}/g, '\n\n').trim();
 
-            // Show the optimized version
-            document.getElementById('optimizedPost').textContent = optimized;
-            document.getElementById('optimizeCard').style.display = 'block';
-            document.getElementById('optimizeBtn').style.display = 'none';
-
-            // Store for later
             currentAnalysis.optimized = optimized;
+            document.getElementById('optimizedText').textContent = optimized;
+            document.getElementById('optimizeSection').style.display = 'block';
+            document.getElementById('optimizeBtn').style.display = 'none';
         }
 
         function copyOptimized() {
-            if (!currentAnalysis || !currentAnalysis.optimized) return;
+            if (!currentAnalysis?.optimized) return;
             navigator.clipboard.writeText(currentAnalysis.optimized);
             alert('Copied to clipboard!');
         }
 
-        function analyzeOptimized() {
-            if (!currentAnalysis || !currentAnalysis.optimized) return;
-
-            // Reset and analyze the optimized version
+        function useOptimized() {
+            if (!currentAnalysis?.optimized) return;
             document.getElementById('postInput').value = currentAnalysis.optimized;
-            document.getElementById('optimizeCard').style.display = 'none';
-            document.getElementById('optimizeBtn').style.display = 'block';
-
-            const signals = analyzeSignals(currentAnalysis.optimized);
-            const score = calculateScore(signals);
-
-            currentAnalysis = {
-                text: currentAnalysis.optimized,
-                signals,
-                score,
-                date: new Date().toISOString()
-            };
-
-            document.getElementById('postPreview').textContent = currentAnalysis.text;
-            updateResultsUI(score, signals);
+            resetAnalyzer();
+            setTimeout(analyzePost, 100);
         }
 
-        // History
+        function resetAnalyzer() {
+            document.getElementById('composeSection').style.display = 'block';
+            document.getElementById('resultsSection').classList.remove('visible');
+            document.getElementById('optimizeSection').style.display = 'none';
+            currentAnalysis = null;
+            updateCharCount();
+        }
+
         function saveToHistory() {
             if (!currentAnalysis) return;
             history.unshift(currentAnalysis);
-            if (history.length > 20) history.pop();
-            localStorage.setItem('viralScoreHistory', JSON.stringify(history));
+            if (history.length > 20) history = history.slice(0, 20);
+            localStorage.setItem('postHistory', JSON.stringify(history));
             alert('Saved to history!');
+            renderHistory();
         }
 
         function renderHistory() {
-            const empty = document.getElementById('historyEmpty');
-            const content = document.getElementById('historyContent');
             const list = document.getElementById('historyList');
+            const empty = document.getElementById('emptyHistory');
 
             if (history.length === 0) {
+                list.innerHTML = '';
                 empty.style.display = 'block';
-                content.style.display = 'none';
                 return;
             }
 
             empty.style.display = 'none';
-            content.style.display = 'block';
-
             list.innerHTML = history.map((item, i) => {
-                const tier = item.score >= 75 ? 'success' : (item.score >= 50 ? 'warning' : 'danger');
-                const date = new Date(item.date).toLocaleDateString();
+                let scoreClass = 'low';
+                if (item.score >= 75) scoreClass = 'high';
+                else if (item.score >= 50) scoreClass = 'medium';
+
                 return `
                     <div class="history-item" onclick="loadFromHistory(${i})">
-                        <div class="history-item-header">
-                            <span class="history-score ${tier}">${item.score}/100</span>
-                            <span class="history-date">${date}</span>
+                        <div class="history-score ${scoreClass}">Score: ${item.score}/100</div>
+                        <div class="history-preview">${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}</div>
+                        <div class="history-meta">
+                            <span>${new Date(item.date).toLocaleDateString()}</span>
                         </div>
-                        <div class="history-preview">${item.text.substring(0, 100)}...</div>
                     </div>
                 `;
             }).join('');
-
-            // Stats
-            const total = history.length;
-            const avg = Math.round(history.reduce((sum, h) => sum + h.score, 0) / total);
-            const best = Math.max(...history.map(h => h.score));
-            document.getElementById('statTotal').textContent = total;
-            document.getElementById('statAvg').textContent = avg;
-            document.getElementById('statBest').textContent = best;
         }
 
         function loadFromHistory(index) {
-            const item = history[index];
+            document.getElementById('postInput').value = history[index].text;
             switchTab('analyze');
-            document.getElementById('postInput').value = item.text;
-            updateCharCount();
             analyzePost();
         }
 
-        function clearHistory() {
-            if (confirm('Clear all history?')) {
-                history = [];
-                localStorage.removeItem('viralScoreHistory');
-                renderHistory();
-            }
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('analyze-tab').style.display = tab === 'analyze' ? 'block' : 'none';
+            document.getElementById('compare-tab').style.display = tab === 'compare' ? 'block' : 'none';
+            document.getElementById('history-tab').style.display = tab === 'history' ? 'block' : 'none';
+
+            if (tab === 'history') renderHistory();
         }
 
-        // Compare
-        function comparePosts() {
+        function updateCompare() {
             const textA = document.getElementById('compareA').value.trim();
             const textB = document.getElementById('compareB').value.trim();
 
-            if (!textA || !textB) {
-                alert('Please enter both posts');
-                return;
+            if (textA) {
+                const scoreA = calculateScore(analyzeSignals(textA));
+                document.getElementById('scoreA').textContent = scoreA;
+                document.getElementById('scoreA').style.color = scoreA >= 50 ? 'var(--green)' : 'var(--pink)';
+            } else {
+                document.getElementById('scoreA').textContent = '-';
             }
 
-            const signalsA = analyzeSignals(textA);
-            const signalsB = analyzeSignals(textB);
-            const scoreA = calculateScore(signalsA);
-            const scoreB = calculateScore(signalsB);
-
-            document.getElementById('compareResults').classList.add('visible');
-            document.getElementById('compareScoreA').textContent = scoreA;
-            document.getElementById('compareScoreB').textContent = scoreB;
-
-            const cardA = document.getElementById('compareCardA');
-            const cardB = document.getElementById('compareCardB');
-            const badgeA = document.getElementById('compareBadgeA');
-            const badgeB = document.getElementById('compareBadgeB');
-
-            cardA.className = 'compare-score-card ' + (scoreA >= scoreB ? 'winner' : 'loser');
-            cardB.className = 'compare-score-card ' + (scoreB > scoreA ? 'winner' : 'loser');
-
-            badgeA.innerHTML = scoreA >= scoreB ? '<span class="winner-badge">WINNER</span>' : '';
-            badgeB.innerHTML = scoreB > scoreA ? '<span class="winner-badge">WINNER</span>' : '';
-
-            const diff = Math.abs(scoreA - scoreB);
-            const winner = scoreA >= scoreB ? 'A' : 'B';
-            const rec = document.getElementById('compareRecommendation');
-
-            if (diff <= 5) {
-                rec.textContent = `Both versions are similar (${diff} point difference). Try testing with your audience to see which resonates more.`;
+            if (textB) {
+                const scoreB = calculateScore(analyzeSignals(textB));
+                document.getElementById('scoreB').textContent = scoreB;
+                document.getElementById('scoreB').style.color = scoreB >= 50 ? 'var(--green)' : 'var(--pink)';
             } else {
-                rec.textContent = `Version ${winner} scores ${diff} points higher. It has better viral potential due to stronger signals.`;
+                document.getElementById('scoreB').textContent = '-';
+            }
+
+            if (textA && textB) {
+                const scoreA = calculateScore(analyzeSignals(textA));
+                const scoreB = calculateScore(analyzeSignals(textB));
+                const diff = scoreB - scoreA;
+                const result = document.getElementById('compareResult');
+
+                if (diff > 0) {
+                    result.innerHTML = `<span style="color: var(--green)">Version B wins by ${diff} points! ✅</span>`;
+                } else if (diff < 0) {
+                    result.innerHTML = `<span style="color: var(--green)">Version A wins by ${Math.abs(diff)} points! ✅</span>`;
+                } else {
+                    result.innerHTML = `<span style="color: var(--orange)">It's a tie! 🤝</span>`;
+                }
             }
         }
 
-        // Init
-        updateCharCount();
+        // Initialize
+        renderHistory();
     </script>
 </body>
 
