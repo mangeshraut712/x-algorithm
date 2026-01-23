@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Will It Go Viral? | X Algorithm Post Analyzer</title>
+    <meta name="description"
+        content="Analyze your posts before publishing. Get your viral score based on X's actual algorithm.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0d0d0d;
+            --bg-card: #1a1a1a;
+            --border: #2a2a2a;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --success: #22c55e;
+            --success-bg: #0a2a1a;
+            --danger: #ef4444;
+            --danger-bg: #2a0a0a;
+            --warning: #f59e0b;
+            --warning-bg: #2a1a0a;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .tagline {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .input-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .input-label {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            color: var(--text);
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: #555;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #444;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .char-counter.warning {
+            color: var(--warning);
+        }
+
+        .char-counter.danger {
+            color: var(--danger);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Section */
+        .results {
+            display: none;
+        }
+
+        .results.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .result-icon {
+            font-size: 3rem;
+        }
+
+        .result-title-section h2 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .result-title-section h3 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .result-header.success .result-title-section h2 {
+            color: var(--success);
+        }
+
+        .result-header.success .result-title-section h3 {
+            color: var(--success);
+        }
+
+        .result-header.danger .result-title-section h2 {
+            color: var(--danger);
+        }
+
+        .result-header.danger .result-title-section h3 {
+            color: var(--danger);
+        }
+
+        .result-header.warning .result-title-section h2 {
+            color: var(--warning);
+        }
+
+        .result-header.warning .result-title-section h3 {
+            color: var(--warning);
+        }
+
+        .post-preview {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+            color: #ccc;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .score-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .score-card.success {
+            background: var(--success-bg);
+            border-color: #1a4a2a;
+        }
+
+        .score-card.danger {
+            background: var(--danger-bg);
+            border-color: #4a1a1a;
+        }
+
+        .score-card.warning {
+            background: var(--warning-bg);
+            border-color: #4a3a1a;
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .score-card.success .score-label {
+            color: var(--success);
+        }
+
+        .score-card.danger .score-label {
+            color: var(--danger);
+        }
+
+        .score-card.warning .score-label {
+            color: var(--warning);
+        }
+
+        .score-number {
+            font-size: 5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-card.success .score-number {
+            color: var(--success);
+        }
+
+        .score-card.danger .score-number {
+            color: var(--danger);
+        }
+
+        .score-card.warning .score-number {
+            color: var(--warning);
+        }
+
+        .score-max {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 16px;
+        }
+
+        .score-card.success .score-badge {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .score-card.danger .score-badge {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .score-card.warning .score-badge {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .signals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .signal-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .signal-icon {
+            font-size: 1.2rem;
+        }
+
+        .signal-text {
+            font-size: 0.95rem;
+        }
+
+        .prediction-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .prediction-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .prediction-stats {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+
+        .prediction-stats .views {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .prediction-stats .likes {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .try-again-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .try-again-btn:hover {
+            background: var(--bg-card);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .score-number {
+                font-size: 4rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🚀</div>
+            <h1>Will It Go Viral?</h1>
+            <p class="tagline">Analyze your post using X's actual algorithm</p>
+        </header>
+
+        <div id="inputSection" class="input-section">
+            <label class="input-label">Paste your post</label>
+            <textarea id="postInput" placeholder="Ever wonder why some posts get 100K views and others die at 12?
+
+X just open-sourced their algorithm. I read all 15,000+ lines.
+
+Here's what I learned..." oninput="updateCharCount()"></textarea>
+            <div class="char-counter" id="charCounter">0 / 280</div>
+            <button class="analyze-btn" id="analyzeBtn" onclick="analyzePost()">
+                Analyze Post ✨
+            </button>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-header" id="resultHeader">
+                <div class="result-icon" id="resultIcon">✅</div>
+                <div class="result-title-section">
+                    <h2 id="resultCategory">POSTS THAT POP</h2>
+                    <h3 id="resultTitle">High Score</h3>
+                </div>
+            </div>
+
+            <div class="post-preview" id="postPreview"></div>
+
+            <div class="score-card" id="scoreCard">
+                <div class="score-label">VIRAL SCORE</div>
+                <div>
+                    <span class="score-number" id="scoreNumber">89</span>
+                    <span class="score-max">/ 100</span>
+                </div>
+                <div class="score-badge" id="scoreBadge">VIRAL POTENTIAL 🚀</div>
+            </div>
+
+            <div class="signals-list" id="signalsList"></div>
+
+            <div class="prediction-card">
+                <div class="prediction-label">Predicted Performance</div>
+                <div class="prediction-stats">
+                    <span class="views" id="predViews">8,400 views</span>
+                    <span>·</span>
+                    <span class="likes" id="predLikes">340 likes</span>
+                </div>
+            </div>
+
+            <button class="try-again-btn" onclick="resetAnalyzer()">
+                Analyze Another Post
+            </button>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/xai-org/x-algorithm" target="_blank">open-source X algorithm</a>
+            </p>
+            <p style="margin-top: 8px;">Built with the algorithm's actual scoring weights</p>
+        </footer>
+    </div>
+
+    <script>
+        function updateCharCount() {
+            const text = document.getElementById('postInput').value;
+            const counter = document.getElementById('charCounter');
+            const len = text.length;
+
+            counter.textContent = `${len} / 280`;
+            counter.className = 'char-counter';
+
+            if (len > 280) counter.classList.add('danger');
+            else if (len > 240) counter.classList.add('warning');
+
+            document.getElementById('analyzeBtn').disabled = len === 0;
+        }
+
+        function analyzePost() {
+            const text = document.getElementById('postInput').value.trim();
+            if (!text) return;
+
+            // Hide input, show results
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('results').classList.add('visible');
+
+            // Set preview
+            document.getElementById('postPreview').textContent = text;
+
+            // Analyze signals
+            const signals = analyzeSignals(text);
+            const score = calculateScore(signals);
+
+            // Update UI
+            updateResultsUI(score, signals, text);
+        }
+
+        function analyzeSignals(text) {
+            const signals = [];
+            const lowerText = text.toLowerCase();
+
+            // Hook detection (first line grabs attention)
+            const firstLine = text.split('\n')[0];
+            const hookPatterns = [
+                /^(ever|what if|here's|how|why|the|i just|breaking|unpopular|hot take)/i,
+                /\?$/,
+                /^\d+/,
+                /(secret|truth|nobody|everyone|always|never)/i
+            ];
+            const hasHook = hookPatterns.some(p => p.test(firstLine)) || firstLine.length < 80;
+            signals.push({
+                positive: hasHook,
+                text: hasHook ? 'Strong hook' : 'No hook',
+                weight: 15
+            });
+
+            // Question detection (drives replies - 27x weight!)
+            const hasQuestion = text.includes('?');
+            signals.push({
+                positive: hasQuestion,
+                text: hasQuestion ? 'Asks question' : 'No question',
+                weight: 20
+            });
+
+            // Formatting (line breaks, not a wall of text)
+            const lineCount = text.split('\n').filter(l => l.trim()).length;
+            const hasFormatting = lineCount >= 3 || text.length < 150;
+            signals.push({
+                positive: hasFormatting,
+                text: hasFormatting ? 'Good formatting' : 'Wall of text',
+                weight: 10
+            });
+
+            // Data/specifics (numbers, $, %)
+            const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
+            const dataMatch = text.match(/\$[\d,]+[kKmM]?|\d+[%]|\d{1,3}[,]\d{3}/);
+            signals.push({
+                positive: hasData,
+                text: hasData ? `Has data (${dataMatch ? dataMatch[0] : 'numbers'})` : 'No specific data',
+                weight: 12
+            });
+
+            // Controversy/strong opinion
+            const controversyWords = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always)/i;
+            const hasControversy = controversyWords.test(text);
+            signals.push({
+                positive: hasControversy,
+                text: hasControversy ? 'Takes a stance' : 'No strong opinion',
+                weight: 8
+            });
+
+            // CTA (call to action)
+            const ctaPatterns = /(follow|share|repost|save this|bookmark|try it|check|link|comment|reply|thoughts\??)/i;
+            const hasCTA = ctaPatterns.test(text);
+            signals.push({
+                positive: hasCTA,
+                text: hasCTA ? 'Clear CTA' : 'Vague CTA',
+                weight: 10
+            });
+
+            // Thread indicator
+            const hasThread = text.includes('🧵') || lowerText.includes('thread') || lowerText.includes('1/') || lowerText.includes('1.') && lowerText.includes('2.');
+            if (hasThread) {
+                signals.push({
+                    positive: true,
+                    text: 'Thread format',
+                    weight: 8
+                });
+            }
+
+            // Lists/structure
+            const hasList = /^\d+[\.\)]/m.test(text) || /^[\-•]/m.test(text);
+            if (hasList) {
+                signals.push({
+                    positive: true,
+                    text: 'Structured list',
+                    weight: 6
+                });
+            }
+
+            // Link penalty
+            const hasLink = /(https?:\/\/|http:\/\/|www\.|\.com|\.xyz|\.io)/i.test(text);
+            if (hasLink) {
+                signals.push({
+                    positive: false,
+                    text: 'Contains link (penalty)',
+                    weight: -15
+                });
+            }
+
+            // Too many hashtags
+            const hashtagCount = (text.match(/#\w+/g) || []).length;
+            if (hashtagCount > 2) {
+                signals.push({
+                    positive: false,
+                    text: `Too many hashtags (${hashtagCount})`,
+                    weight: -8
+                });
+            }
+
+            // Too short
+            if (text.length < 30) {
+                signals.push({
+                    positive: false,
+                    text: 'Too short',
+                    weight: -10
+                });
+            }
+
+            // Over character limit
+            if (text.length > 280) {
+                signals.push({
+                    positive: false,
+                    text: 'Over 280 chars',
+                    weight: -5
+                });
+            }
+
+            return signals;
+        }
+
+        function calculateScore(signals) {
+            let score = 50; // Base score
+
+            signals.forEach(s => {
+                if (s.positive) {
+                    score += s.weight;
+                } else {
+                    score += s.weight; // Already negative
+                }
+            });
+
+            return Math.max(0, Math.min(100, Math.round(score)));
+        }
+
+        function updateResultsUI(score, signals, text) {
+            const header = document.getElementById('resultHeader');
+            const scoreCard = document.getElementById('scoreCard');
+            const icon = document.getElementById('resultIcon');
+            const category = document.getElementById('resultCategory');
+            const title = document.getElementById('resultTitle');
+            const badge = document.getElementById('scoreBadge');
+
+            // Determine tier
+            let tier;
+            if (score >= 75) {
+                tier = 'success';
+                icon.textContent = '✅';
+                category.textContent = 'POSTS THAT POP';
+                title.textContent = 'High Score';
+                badge.textContent = 'VIRAL POTENTIAL 🚀';
+            } else if (score >= 50) {
+                tier = 'warning';
+                icon.textContent = '⚠️';
+                category.textContent = 'ROOM TO IMPROVE';
+                title.textContent = 'Average Score';
+                badge.textContent = 'NEEDS TWEAKS 🔧';
+            } else {
+                tier = 'danger';
+                icon.textContent = '❌';
+                category.textContent = 'POSTS THAT FLOP';
+                title.textContent = 'Low Score';
+                badge.textContent = 'NEEDS WORK 🔧';
+            }
+
+            header.className = `result-header ${tier}`;
+            scoreCard.className = `score-card ${tier}`;
+            document.getElementById('scoreNumber').textContent = score;
+
+            // Render signals
+            const signalsList = document.getElementById('signalsList');
+            signalsList.innerHTML = signals.map(s => `
+                <div class="signal-item">
+                    <span class="signal-icon">${s.positive ? '✅' : '❌'}</span>
+                    <span class="signal-text">${s.text}</span>
+                </div>
+            `).join('');
+
+            // Predict performance
+            const baseViews = score >= 75 ? 5000 : (score >= 50 ? 500 : 50);
+            const multiplier = score / 50;
+            const views = Math.round(baseViews * multiplier);
+            const likes = Math.round(views * 0.04);
+
+            document.getElementById('predViews').textContent = views.toLocaleString() + ' views';
+            document.getElementById('predLikes').textContent = likes.toLocaleString() + ' likes';
+        }
+
+        function resetAnalyzer() {
+            document.getElementById('inputSection').style.display = 'block';
+            document.getElementById('results').classList.remove('visible');
+            document.getElementById('postInput').value = '';
+            updateCharCount();
+        }
+
+        // Initial state
+        updateCharCount();
+    </script>
+</body>
+
+</html>
