@@ -697,6 +697,24 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
 
                 <div class="signals-list" id="signalsList"></div>
 
+                <!-- Optimization Suggestions -->
+                <div class="card" id="optimizeCard" style="display: none; border-color: var(--success);">
+                    <div class="card-title" style="color: var(--success);">✨ Optimized Version</div>
+                    <div id="optimizedPost"
+                        style="background: var(--bg-dark); padding: 16px; border-radius: 12px; margin-bottom: 16px; white-space: pre-wrap; line-height: 1.6;">
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="btn btn-secondary btn-small" onclick="copyOptimized()">📋 Copy</button>
+                        <button class="btn btn-secondary btn-small" onclick="analyzeOptimized()">🔄 Analyze
+                            This</button>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="optimizePost()" id="optimizeBtn"
+                    style="margin-bottom: 20px; background: linear-gradient(135deg, var(--success), #10b981);">
+                    ✨ Optimize My Post
+                </button>
+
                 <div class="prediction-card">
                     <div class="prediction-label">Predicted Performance</div>
                     <div class="prediction-stats">
@@ -1050,14 +1068,124 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             const likes = Math.round(views * 0.04);
             document.getElementById('predViews').textContent = views.toLocaleString() + ' views';
             document.getElementById('predLikes').textContent = likes.toLocaleString() + ' likes';
+
+            // Reset optimize card
+            document.getElementById('optimizeCard').style.display = 'none';
         }
 
         function resetAnalyzer() {
             document.getElementById('inputSection').style.display = 'block';
             document.getElementById('results').classList.remove('visible');
             document.getElementById('postInput').value = '';
+            document.getElementById('optimizeCard').style.display = 'none';
             currentAnalysis = null;
             updateCharCount();
+        }
+
+        // POST OPTIMIZATION ENGINE
+        function optimizePost() {
+            if (!currentAnalysis) return;
+
+            const original = currentAnalysis.text;
+            let optimized = original;
+
+            // 1. Remove links and add "link in reply" note
+            const hasLink = /(https?:\/\/[^\s]+)/gi.test(original);
+            if (hasLink) {
+                optimized = optimized.replace(/(https?:\/\/[^\s]+)/gi, '');
+                optimized = optimized.trim();
+                if (!optimized.includes('👇')) {
+                    optimized += '\n\n(Link in reply 👇)';
+                }
+            }
+
+            // 2. Improve the hook (first line)
+            const lines = optimized.split('\n').filter(l => l.trim());
+            if (lines.length > 0) {
+                const firstLine = lines[0];
+
+                // Transform generic openings
+                const hookTransforms = [
+                    {
+                        pattern: /^(New Year Update:|Update:|Announcement:)/i,
+                        replacement: 'I just shipped something special:'
+                    },
+                    {
+                        pattern: /^(Just launched|Excited to share|Happy to announce)/i,
+                        replacement: 'I built'
+                    },
+                    {
+                        pattern: /^(Check out|Look at|See my)/i,
+                        replacement: 'I created'
+                    },
+                ];
+
+                hookTransforms.forEach(t => {
+                    if (t.pattern.test(lines[0])) {
+                        lines[0] = lines[0].replace(t.pattern, t.replacement);
+                    }
+                });
+
+                optimized = lines.join('\n\n');
+            }
+
+            // 3. Add question if missing
+            if (!optimized.includes('?')) {
+                const questions = [
+                    "What do you think?",
+                    "Have you tried something similar?",
+                    "What's your experience with this?",
+                    "Agree or disagree?",
+                    "What would you add?"
+                ];
+                const randomQ = questions[Math.floor(Math.random() * questions.length)];
+                optimized += `\n\n${randomQ} 👇`;
+            }
+
+            // 4. Add formatting if wall of text
+            if (optimized.split('\n').filter(l => l.trim()).length < 3 && optimized.length > 100) {
+                // Add line breaks after sentences
+                optimized = optimized.replace(/\. ([A-Z])/g, '.\n\n$1');
+            }
+
+            // 5. Clean up extra whitespace
+            optimized = optimized.replace(/\n{3,}/g, '\n\n').trim();
+
+            // Show the optimized version
+            document.getElementById('optimizedPost').textContent = optimized;
+            document.getElementById('optimizeCard').style.display = 'block';
+            document.getElementById('optimizeBtn').style.display = 'none';
+
+            // Store for later
+            currentAnalysis.optimized = optimized;
+        }
+
+        function copyOptimized() {
+            if (!currentAnalysis || !currentAnalysis.optimized) return;
+            navigator.clipboard.writeText(currentAnalysis.optimized);
+            alert('Copied to clipboard!');
+        }
+
+        function analyzeOptimized() {
+            if (!currentAnalysis || !currentAnalysis.optimized) return;
+
+            // Reset and analyze the optimized version
+            document.getElementById('postInput').value = currentAnalysis.optimized;
+            document.getElementById('optimizeCard').style.display = 'none';
+            document.getElementById('optimizeBtn').style.display = 'block';
+
+            const signals = analyzeSignals(currentAnalysis.optimized);
+            const score = calculateScore(signals);
+
+            currentAnalysis = {
+                text: currentAnalysis.optimized,
+                signals,
+                score,
+                date: new Date().toISOString()
+            };
+
+            document.getElementById('postPreview').textContent = currentAnalysis.text;
+            updateResultsUI(score, signals);
         }
 
         // History
