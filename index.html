@@ -4,13 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X Algorithm Toolkit | Understand How X Ranks Content</title>
+    <title>X Algorithm | Open Source Recommendation System</title>
     <meta name="description"
-        content="Interactive tools to understand X's open-source algorithm. Score calculator, post analyzer, and more.">
-    <meta property="og:title" content="X Algorithm Toolkit">
-    <meta property="og:description" content="Interactive tools based on X's open-source algorithm">
+        content="Explore X's open-source For You feed algorithm. Understand how content is ranked, filtered, and personalized.">
+    <meta property="og:title" content="X Algorithm - Open Source">
+    <meta property="og:description" content="The open-source recommendation system powering X's For You feed">
+    <meta property="og:image" content="https://abs.twimg.com/icons/apple-touch-icon-192x192.png">
     <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>𝕏</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -18,136 +20,338 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #1d1f23;
+            --border-color: #2f3336;
+            --text-primary: #e7e9ea;
+            --text-secondary: #71767b;
+            --accent-blue: #1d9bf0;
+            --accent-green: #00ba7c;
+            --accent-pink: #f91880;
+            --accent-orange: #ff7a00;
+            --accent-purple: #7856ff;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
-            min-height: 100vh;
-            line-height: 1.6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 900px;
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        header {
-            text-align: center;
-            margin-bottom: 60px;
-        }
-
-        .badge {
-            display: inline-block;
-            background: rgba(29, 161, 242, 0.2);
-            color: #1da1f2;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 3rem;
+        .logo {
+            font-size: 1.8rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #1da1f2, #00d4aa);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo-x {
+            font-size: 2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 10px 16px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: 9999px;
+            transition: background 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .nav-link.primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .nav-link.primary:hover {
+            background: #d7dbdc;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 140px 24px 80px;
+            text-align: center;
+            background: radial-gradient(ellipse at 50% 0%, rgba(29, 155, 240, 0.15) 0%, transparent 50%);
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+            line-height: 1.1;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
-            margin-bottom: 16px;
         }
 
-        .tagline {
-            font-size: 1.2rem;
-            color: #888;
-            max-width: 500px;
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1a8cd8;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 48px;
+            padding: 40px 24px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Components Section */
+        .section {
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 80px 24px;
         }
 
-        .tools-grid {
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Architecture */
+        .architecture {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 48px;
+            overflow-x: auto;
+        }
+
+        .architecture pre {
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            white-space: pre;
+        }
+
+        /* Components Grid */
+        .components-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 24px;
-            margin-bottom: 60px;
+            gap: 20px;
         }
 
-        .tool-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .component-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 28px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s ease;
-            display: block;
+            padding: 24px;
+            transition: all 0.2s;
         }
 
-        .tool-card:hover {
-            background: rgba(29, 161, 242, 0.1);
-            border-color: rgba(29, 161, 242, 0.3);
-            transform: translateY(-4px);
+        .component-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
         }
 
-        .tool-icon {
-            font-size: 2.5rem;
+        .component-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
             margin-bottom: 16px;
         }
 
-        .tool-title {
-            font-size: 1.3rem;
+        .component-title {
+            font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 8px;
         }
 
-        .tool-desc {
-            color: #888;
+        .component-desc {
+            color: var(--text-secondary);
             font-size: 0.95rem;
         }
 
-        .tool-badge {
-            display: inline-block;
-            background: #22c55e;
-            color: black;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            margin-left: 8px;
-            vertical-align: middle;
+        .component-tech {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
         }
 
-        .weights-section {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 32px;
-            margin-bottom: 40px;
+        .tech-badge {
+            padding: 4px 10px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
-        .weights-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 24px;
-            text-align: center;
-        }
-
+        /* Weights Section */
         .weights-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 16px;
         }
 
-        .weight-item {
-            text-align: center;
-            padding: 16px;
-            background: rgba(0, 0, 0, 0.3);
+        .weight-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
         }
 
-        .weight-action {
-            font-size: 1.5rem;
+        .weight-card:hover {
+            transform: scale(1.02);
+        }
+
+        .weight-icon {
+            font-size: 2rem;
             margin-bottom: 8px;
         }
 
@@ -157,167 +361,438 @@
         }
 
         .weight-value.positive {
-            color: #22c55e;
+            color: var(--accent-green);
         }
 
         .weight-value.negative {
-            color: #ef4444;
+            color: var(--accent-pink);
         }
 
         .weight-label {
-            font-size: 0.8rem;
-            color: #888;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
-        .cta-section {
-            text-align: center;
-            padding: 40px;
-            background: linear-gradient(135deg, rgba(29, 161, 242, 0.1), rgba(0, 212, 170, 0.1));
-            border-radius: 16px;
-            margin-bottom: 40px;
+        /* Tools Section */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
         }
 
-        .cta-title {
-            font-size: 1.8rem;
-            font-weight: 700;
+        .tool-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            display: block;
+        }
+
+        .tool-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
+
+        .tool-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 12px;
         }
 
-        .cta-text {
-            color: #888;
-            margin-bottom: 24px;
+        .tool-card-icon {
+            font-size: 2rem;
         }
 
-        .cta-btn {
-            display: inline-block;
-            padding: 14px 32px;
-            background: linear-gradient(135deg, #1da1f2, #00d4aa);
-            color: white;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 600;
+        .tool-card-title {
             font-size: 1.1rem;
-            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
-        .cta-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 40px rgba(29, 161, 242, 0.3);
+        .tool-card-new {
+            background: var(--accent-blue);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 8px;
         }
 
-        footer {
+        .tool-card-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(29, 155, 240, 0.1), rgba(120, 86, 255, 0.1));
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 80px 24px;
             text-align: center;
-            padding: 40px 20px;
-            color: #666;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .cta-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        footer {
+            padding: 40px 24px;
+            text-align: center;
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
         footer a {
-            color: #1da1f2;
+            color: var(--accent-blue);
             text-decoration: none;
         }
 
-        @media (max-width: 480px) {
-            h1 {
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .header-content {
+                padding: 12px 16px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 120px 16px 60px;
+            }
+
+            .hero h1 {
                 font-size: 2rem;
             }
 
-            .tagline {
-                font-size: 1rem;
+            .stats {
+                gap: 24px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .section {
+                padding: 60px 16px;
             }
         }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <header>
-            <div class="badge">🔓 Open Source</div>
-            <h1>X Algorithm Toolkit</h1>
-            <p class="tagline">Interactive tools to understand how X ranks your content, based on the actual open-source
-                code</p>
-        </header>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span class="logo-x">𝕏</span>
+                <span>Algorithm</span>
+            </div>
+            <nav class="nav-links">
+                <a href="#components" class="nav-link">Components</a>
+                <a href="#weights" class="nav-link">Weights</a>
+                <a href="#tools" class="nav-link">Tools</a>
+                <a href="https://github.com/mangeshraut712/x-algorithm" class="nav-link primary">GitHub</a>
+            </nav>
+        </div>
+    </header>
 
-        <div class="tools-grid">
-            <a href="tools/viral-score-analyzer.html" class="tool-card">
-                <div class="tool-icon">🚀</div>
-                <div class="tool-title">Viral Score Analyzer <span class="tool-badge">NEW</span></div>
-                <div class="tool-desc">Analyze posts before publishing. Get your viral score, A/B test versions, and
-                    track history.</div>
+    <section class="hero">
+        <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            Open Source
+        </div>
+        <h1>
+            The <span>For You</span> Feed<br>Algorithm
+        </h1>
+        <p class="hero-subtitle">
+            Explore the open-source recommendation system that powers personalized content ranking on X.
+        </p>
+        <div class="hero-cta">
+            <a href="tools/viral-score-analyzer.html" class="btn btn-primary">
+                🚀 Try the Analyzer
             </a>
-
-            <a href="tools/score-calculator.html" class="tool-card">
-                <div class="tool-icon">🧮</div>
-                <div class="tool-title">Score Calculator</div>
-                <div class="tool-desc">Calculate how engagement probabilities translate to ranking scores using actual
-                    weights.</div>
-            </a>
-
-            <a href="tools/pipeline-visualization.html" class="tool-card">
-                <div class="tool-icon">🔄</div>
-                <div class="tool-title">Pipeline Visualization</div>
-                <div class="tool-desc">Interactive exploration of every stage in the recommendation pipeline.</div>
-            </a>
-
-            <a href="tools/simclusters-explorer.html" class="tool-card">
-                <div class="tool-icon">🎯</div>
-                <div class="tool-title">SimClusters Explorer</div>
-                <div class="tool-desc">Understand how topic clustering affects your content distribution.</div>
+            <a href="https://github.com/xai-org/x-algorithm" class="btn btn-secondary">
+                View on GitHub →
             </a>
         </div>
+    </section>
 
-        <div class="weights-section">
-            <div class="weights-title">⚡ Algorithm Weights (from the code)</div>
-            <div class="weights-grid">
-                <div class="weight-item">
-                    <div class="weight-action">💬</div>
-                    <div class="weight-value positive">27x</div>
-                    <div class="weight-label">Reply</div>
+    <section class="stats">
+        <div class="stat">
+            <div class="stat-value">15K+</div>
+            <div class="stat-label">Lines of Code</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">4</div>
+            <div class="stat-label">Core Components</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">15</div>
+            <div class="stat-label">Engagement Signals</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value">Grok</div>
+            <div class="stat-label">Powered By</div>
+        </div>
+    </section>
+
+    <section class="section" id="components">
+        <div class="section-header">
+            <h2 class="section-title">System Architecture</h2>
+            <p class="section-subtitle">Four core components work together to rank your feed</p>
+        </div>
+
+        <div class="architecture">
+            <pre>
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              FOR YOU FEED REQUEST                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                 HOME MIXER                                   │
+│                            (Orchestration Layer)                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────────────┐          ┌─────────────────────┐                  │
+│   │       THUNDER       │          │        PHOENIX       │                  │
+│   │   (In-Network)      │          │   (Out-of-Network)   │                  │
+│   │   Posts you follow  │          │   ML-based discovery │                  │
+│   └─────────────────────┘          └─────────────────────┘                  │
+│              │                              │                                │
+│              └──────────────┬───────────────┘                                │
+│                             ▼                                                │
+│                    ┌─────────────────┐                                       │
+│                    │    FILTERING    │  → Remove spam, duplicates, blocks    │
+│                    └─────────────────┘                                       │
+│                             │                                                │
+│                             ▼                                                │
+│                    ┌─────────────────┐                                       │
+│                    │     SCORING     │  → Grok-based engagement prediction   │
+│                    └─────────────────┘                                       │
+│                             │                                                │
+│                             ▼                                                │
+│                    ┌─────────────────┐                                       │
+│                    │    SELECTION    │  → Top K by weighted score            │
+│                    └─────────────────┘                                       │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              RANKED FEED RESPONSE                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+            </pre>
+        </div>
+
+        <div class="components-grid">
+            <div class="component-card">
+                <div class="component-icon">🏠</div>
+                <h3 class="component-title">Home Mixer</h3>
+                <p class="component-desc">
+                    Orchestration layer that assembles the For You feed. Manages the entire pipeline from request to
+                    response.
+                </p>
+                <div class="component-tech">
+                    <span class="tech-badge">Rust</span>
+                    <span class="tech-badge">gRPC</span>
+                    <span class="tech-badge">Async</span>
                 </div>
-                <div class="weight-item">
-                    <div class="weight-action">👤</div>
-                    <div class="weight-value positive">12x</div>
-                    <div class="weight-label">Profile Click</div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-icon">⚡</div>
+                <h3 class="component-title">Thunder</h3>
+                <p class="component-desc">
+                    In-memory post store for real-time ingestion. Serves posts from accounts you follow with sub-ms
+                    latency.
+                </p>
+                <div class="component-tech">
+                    <span class="tech-badge">Rust</span>
+                    <span class="tech-badge">Kafka</span>
+                    <span class="tech-badge">In-Memory</span>
                 </div>
-                <div class="weight-item">
-                    <div class="weight-action">❤️</div>
-                    <div class="weight-value positive">1x</div>
-                    <div class="weight-label">Like</div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-icon">🔥</div>
+                <h3 class="component-title">Phoenix</h3>
+                <p class="component-desc">
+                    ML component with Grok-based transformer. Handles both retrieval (two-tower) and ranking with
+                    candidate isolation.
+                </p>
+                <div class="component-tech">
+                    <span class="tech-badge">Python</span>
+                    <span class="tech-badge">JAX</span>
+                    <span class="tech-badge">Grok</span>
                 </div>
-                <div class="weight-item">
-                    <div class="weight-action">🔁</div>
-                    <div class="weight-value positive">1x</div>
-                    <div class="weight-label">Repost</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-action">😴</div>
-                    <div class="weight-value negative">-74x</div>
-                    <div class="weight-label">Not Interested</div>
-                </div>
-                <div class="weight-item">
-                    <div class="weight-action">🚫</div>
-                    <div class="weight-value negative">-369x</div>
-                    <div class="weight-label">Report</div>
+            </div>
+
+            <div class="component-card">
+                <div class="component-icon">🔧</div>
+                <h3 class="component-title">Candidate Pipeline</h3>
+                <p class="component-desc">
+                    Reusable framework for building recommendation pipelines. Defines traits for sources, filters,
+                    scorers.
+                </p>
+                <div class="component-tech">
+                    <span class="tech-badge">Rust</span>
+                    <span class="tech-badge">Framework</span>
+                    <span class="tech-badge">Async</span>
                 </div>
             </div>
         </div>
+    </section>
 
-        <div class="cta-section">
-            <div class="cta-title">Ready to optimize your posts?</div>
-            <p class="cta-text">Check your viral score before you hit send</p>
-            <a href="tools/viral-score-analyzer.html" class="cta-btn">Try the Analyzer →</a>
+    <section class="section" id="weights">
+        <div class="section-header">
+            <h2 class="section-title">Scoring Weights</h2>
+            <p class="section-subtitle">How engagement signals are weighted in the ranking formula</p>
         </div>
 
-        <footer>
-            <p>Built on the <a href="https://github.com/xai-org/x-algorithm" target="_blank">open-source X algorithm</a>
-            </p>
-            <p style="margin-top: 8px;">
-                <a href="https://github.com/mangeshraut712/x-algorithm">View on GitHub</a> ·
-                <a href="docs/POSTING_STRATEGY.md">Posting Strategy Guide</a>
-            </p>
-        </footer>
-    </div>
+        <div class="weights-grid">
+            <div class="weight-card">
+                <div class="weight-icon">💬</div>
+                <div class="weight-value positive">27x</div>
+                <div class="weight-label">Reply</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">👤</div>
+                <div class="weight-value positive">12x</div>
+                <div class="weight-label">Profile Click</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">❤️</div>
+                <div class="weight-value positive">1x</div>
+                <div class="weight-label">Like</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">🔁</div>
+                <div class="weight-value positive">1x</div>
+                <div class="weight-label">Repost</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">🔖</div>
+                <div class="weight-value positive">1x</div>
+                <div class="weight-label">Bookmark</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">🎬</div>
+                <div class="weight-value positive">0.3x</div>
+                <div class="weight-label">Video View</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">😴</div>
+                <div class="weight-value negative">-74x</div>
+                <div class="weight-label">Not Interested</div>
+            </div>
+            <div class="weight-card">
+                <div class="weight-icon">🚫</div>
+                <div class="weight-value negative">-369x</div>
+                <div class="weight-label">Report</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="tools">
+        <div class="section-header">
+            <h2 class="section-title">Interactive Tools</h2>
+            <p class="section-subtitle">Explore and understand the algorithm with these tools</p>
+        </div>
+
+        <div class="tools-grid">
+            <a href="tools/viral-score-analyzer.html" class="tool-card">
+                <div class="tool-card-header">
+                    <span class="tool-card-icon">🚀</span>
+                    <span class="tool-card-title">Viral Score Analyzer</span>
+                    <span class="tool-card-new">NEW</span>
+                </div>
+                <p class="tool-card-desc">
+                    Analyze posts before publishing. Get your viral score, A/B test versions, and track your history.
+                </p>
+            </a>
+
+            <a href="tools/score-calculator.html" class="tool-card">
+                <div class="tool-card-header">
+                    <span class="tool-card-icon">🧮</span>
+                    <span class="tool-card-title">Score Calculator</span>
+                </div>
+                <p class="tool-card-desc">
+                    Calculate how engagement probabilities translate to ranking scores using actual weights.
+                </p>
+            </a>
+
+            <a href="tools/pipeline-visualization.html" class="tool-card">
+                <div class="tool-card-header">
+                    <span class="tool-card-icon">🔄</span>
+                    <span class="tool-card-title">Pipeline Visualization</span>
+                </div>
+                <p class="tool-card-desc">
+                    Interactive exploration of every stage in the recommendation pipeline.
+                </p>
+            </a>
+
+            <a href="tools/simclusters-explorer.html" class="tool-card">
+                <div class="tool-card-header">
+                    <span class="tool-card-icon">🎯</span>
+                    <span class="tool-card-title">SimClusters Explorer</span>
+                </div>
+                <p class="tool-card-desc">
+                    Understand how topic clustering affects your content distribution across niches.
+                </p>
+            </a>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <h2 class="cta-title">Ready to optimize your content?</h2>
+        <p class="cta-subtitle">Check your viral score before you hit send</p>
+        <a href="tools/viral-score-analyzer.html" class="btn btn-primary">
+            Try the Analyzer →
+        </a>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="https://github.com/xai-org/x-algorithm">Official Repo</a>
+            <a href="docs/POSTING_STRATEGY.md">Posting Strategy</a>
+            <a href="docs/ARCHITECTURE.md">Architecture</a>
+            <a href="docs/CONTRIBUTING.md">Contributing</a>
+        </div>
+        <p>
+            Based on the <a href="https://github.com/xai-org/x-algorithm">open-source X algorithm</a> by xAI
+        </p>
+        <p style="margin-top: 8px; color: #536471;">
+            Powered by Grok · Built for transparency
+        </p>
+    </footer>
 </body>
 
 </html>
