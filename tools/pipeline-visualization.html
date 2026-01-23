@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X Algorithm Pipeline Visualization</title>
+    <title>Pipeline Visualization | X Algorithm</title>
+    <meta name="description" content="Interactive exploration of every stage in X's recommendation pipeline.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,264 +16,289 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            overflow-x: hidden;
         }
 
-        .header {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(180deg, rgba(29, 161, 242, 0.1) 0%, transparent 100%);
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, #1da1f2, #00d4aa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            color: #888;
-            font-size: 1.1rem;
-        }
-
-        .pipeline-container {
-            max-width: 1000px;
+        .container {
+            max-width: 600px;
             margin: 0 auto;
-            padding: 20px;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
         }
 
-        .stage {
-            position: relative;
-            margin-bottom: 20px;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: fadeIn 0.5s ease forwards;
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
         }
 
-        .stage:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .stage:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .stage:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .stage:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .stage:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        .stage:nth-child(6) {
-            animation-delay: 0.6s;
-        }
-
-        .stage:nth-child(7) {
-            animation-delay: 0.7s;
-        }
-
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .stage-box {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 24px;
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .stage-box:hover {
-            background: rgba(29, 161, 242, 0.1);
-            border-color: rgba(29, 161, 242, 0.3);
-            transform: translateX(10px);
+        .back-btn:hover {
+            background: var(--bg-tertiary);
         }
 
-        .stage-box.active {
-            background: rgba(29, 161, 242, 0.15);
-            border-color: #1da1f2;
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Pipeline Flow */
+        .pipeline {
+            padding: 16px;
+        }
+
+        .pipeline-stage {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .pipeline-stage:hover {
+            border-color: var(--blue);
+        }
+
+        .pipeline-stage.active {
+            border-color: var(--green);
         }
 
         .stage-header {
             display: flex;
             align-items: center;
             gap: 16px;
-            margin-bottom: 12px;
+            padding: 16px;
         }
 
         .stage-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #1da1f2, #00d4aa);
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stage-icon.request {
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+        }
+
+        .stage-icon.thunder {
+            background: linear-gradient(135deg, var(--orange), var(--pink));
+        }
+
+        .stage-icon.phoenix {
+            background: linear-gradient(135deg, var(--blue), var(--green));
+        }
+
+        .stage-icon.filter {
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+        }
+
+        .stage-icon.score {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+        }
+
+        .stage-icon.select {
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+        }
+
+        .stage-info {
+            flex: 1;
         }
 
         .stage-title {
-            font-size: 1.3rem;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.1rem;
         }
 
         .stage-subtitle {
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
 
+        .stage-arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .pipeline-stage.expanded .stage-arrow {
+            transform: rotate(180deg);
+        }
+
+        .stage-content {
+            display: none;
+            padding: 0 16px 16px;
+        }
+
+        .pipeline-stage.expanded .stage-content {
+            display: block;
+        }
+
         .stage-details {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
         }
 
-        .stage-box.active .stage-details {
-            max-height: 500px;
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
         }
 
-        .details-content {
-            padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            margin-top: 16px;
-        }
-
-        .detail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .detail-item {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 12px;
+        .detail-row:last-child {
+            border-bottom: none;
         }
 
         .detail-label {
-            font-size: 0.75rem;
-            color: #888;
-            text-transform: uppercase;
-            margin-bottom: 4px;
+            color: var(--text-muted);
         }
 
         .detail-value {
-            font-size: 1rem;
-            color: #1da1f2;
+            font-weight: 600;
         }
 
-        .arrow {
-            text-align: center;
-            padding: 10px;
-            color: #444;
-            font-size: 1.5rem;
+        .detail-value.in {
+            color: var(--orange);
         }
 
-        .arrow::after {
-            content: '↓';
-            display: inline-block;
-            animation: bounce 1s ease infinite;
+        .detail-value.out {
+            color: var(--green);
         }
 
-        @keyframes bounce {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(5px);
-            }
-        }
-
-        .weights-table {
-            width: 100%;
-            margin-top: 12px;
-            border-collapse: collapse;
-        }
-
-        .weights-table th,
-        .weights-table td {
-            padding: 8px 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .weights-table th {
-            color: #888;
-            font-weight: normal;
-            font-size: 0.85rem;
-        }
-
-        .weight-positive {
-            color: #00d4aa;
-        }
-
-        .weight-negative {
-            color: #f44336;
-        }
-
-        .code-block {
-            background: #1a1a2e;
-            border-radius: 8px;
-            padding: 16px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.85rem;
-            overflow-x: auto;
-            margin-top: 12px;
-        }
-
-        .code-keyword {
-            color: #ff79c6;
-        }
-
-        .code-string {
-            color: #f1fa8c;
-        }
-
-        .code-number {
-            color: #bd93f9;
-        }
-
-        .code-comment {
-            color: #6272a4;
-        }
-
-        .legend {
+        /* Connector Arrow */
+        .connector {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            padding: 20px;
-            flex-wrap: wrap;
+            padding: 8px 0;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--border), var(--blue));
+            position: relative;
+        }
+
+        .connector-line::after {
+            content: '▼';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--blue);
+            font-size: 0.8rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--green);
+            overflow-x: auto;
+        }
+
+        /* Stats */
+        .pipeline-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--blue);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Legend */
+        .legend {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.85rem;
-            color: #888;
+            font-size: 0.9rem;
         }
 
         .legend-dot {
@@ -278,368 +307,302 @@
             border-radius: 50%;
         }
 
-        .legend-dot.source {
-            background: #1da1f2;
-        }
-
-        .legend-dot.process {
-            background: #00d4aa;
-        }
-
-        .legend-dot.score {
-            background: #feca57;
-        }
-
-        .legend-dot.filter {
-            background: #f44336;
-        }
-
         footer {
+            padding: 24px;
             text-align: center;
-            padding: 40px;
-            color: #666;
+            color: var(--text-muted);
         }
 
         footer a {
-            color: #1da1f2;
+            color: var(--blue);
             text-decoration: none;
         }
     </style>
 </head>
 
 <body>
-    <div class="header">
-        <h1>𝕏 Algorithm Pipeline</h1>
-        <p>Interactive visualization of how your "For You" feed is generated</p>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🔄 Pipeline Visualization</h1>
+        </header>
+
+        <!-- Pipeline Stats -->
+        <div class="pipeline-stats">
+            <div class="stat-item">
+                <div class="stat-value">~1500</div>
+                <div class="stat-label">Candidates In</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Pipeline Stages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~50</div>
+                <div class="stat-label">Posts Out</div>
+            </div>
+        </div>
+
+        <!-- Pipeline Stages -->
+        <div class="pipeline">
+            <!-- Stage 1: Request -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon request">📱</div>
+                    <div class="stage-info">
+                        <div class="stage-title">1. Feed Request</div>
+                        <div class="stage-subtitle">User opens For You tab</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">User ID</span>
+                            <span class="detail-value">Extracted from session</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Features Loaded</span>
+                            <span class="detail-value">Interests, Following, History</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Request Limit</span>
+                            <span class="detail-value">~100 posts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 2: Thunder -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon thunder">⚡</div>
+                    <div class="stage-info">
+                        <div class="stage-title">2. Thunder (In-Network)</div>
+                        <div class="stage-subtitle">Posts from accounts you follow</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Source</span>
+                            <span class="detail-value">Following Timeline</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Candidates</span>
+                            <span class="detail-value in">~500 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Max Age</span>
+                            <span class="detail-value">7 days</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Weight Factor</span>
+                            <span class="detail-value out">1.0× (full weight)</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>thunder/realtime_query.rs
+→ Get recent posts from followed users
+→ Apply freshness filter (7 day max)
+→ Return candidate pool</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 3: Phoenix -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon phoenix">🔥</div>
+                    <div class="stage-info">
+                        <div class="stage-title">3. Phoenix (Out-of-Network)</div>
+                        <div class="stage-subtitle">ML-based content discovery</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Source</span>
+                            <span class="detail-value">SimClusters + Social Graph</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Candidates</span>
+                            <span class="detail-value in">~1000 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Model</span>
+                            <span class="detail-value">Grok Transformer</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Weight Factor</span>
+                            <span class="detail-value out">0.7× (OON discount)</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>phoenix/ranker.py (JAX)
+→ SimClusters user embedding
+→ Grok engagement prediction
+→ Return discovery candidates</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 4: Filtering -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon filter">🚫</div>
+                    <div class="stage-info">
+                        <div class="stage-title">4. Filtering</div>
+                        <div class="stage-subtitle">Remove spam, blocks, duplicates</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Input</span>
+                            <span class="detail-value in">~1500 candidates</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Spam Filtered</span>
+                            <span class="detail-value">~200 removed</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Blocked/Muted</span>
+                            <span class="detail-value">User-specific removal</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Output</span>
+                            <span class="detail-value out">~1200 candidates</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 5: Scoring -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon score">⚖️</div>
+                    <div class="stage-info">
+                        <div class="stage-title">5. Weighted Scoring</div>
+                        <div class="stage-subtitle">Apply algorithm weights</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Reply Weight</span>
+                            <span class="detail-value out">×27.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Profile Click</span>
+                            <span class="detail-value out">×12.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Bookmark</span>
+                            <span class="detail-value out">×4.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Report Penalty</span>
+                            <span class="detail-value" style="color: var(--pink);">×-369.0</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>home-mixer/scorers/weighted_scorer.rs
+Score = Σ (weight × P(action))
++ SIMD optimization
++ Author diversity decay</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 6: Selection -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon select">✅</div>
+                    <div class="stage-info">
+                        <div class="stage-title">6. Selection & Serving</div>
+                        <div class="stage-subtitle">Top K posts to your feed</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Input</span>
+                            <span class="detail-value in">~1200 scored</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Top K Selection</span>
+                            <span class="detail-value">~100 selected</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Ad Injection</span>
+                            <span class="detail-value">Every 4-5 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Output</span>
+                            <span class="detail-value out">~50 posts (page 1)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-title">Color Key</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--orange);"></div>
+                    <span>Input / Candidates</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--green);"></div>
+                    <span>Output / Weight</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--blue);"></div>
+                    <span>Process / Stage</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--pink);"></div>
+                    <span>Penalty / Removed</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
     </div>
-
-    <div class="legend">
-        <div class="legend-item">
-            <div class="legend-dot source"></div> Data Source
-        </div>
-        <div class="legend-item">
-            <div class="legend-dot process"></div> Processing
-        </div>
-        <div class="legend-item">
-            <div class="legend-dot score"></div> Scoring
-        </div>
-        <div class="legend-item">
-            <div class="legend-dot filter"></div> Filtering
-        </div>
-    </div>
-
-    <div class="pipeline-container">
-        <!-- Stage 1: Request -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon">📱</div>
-                    <div>
-                        <div class="stage-title">User Opens App</div>
-                        <div class="stage-subtitle">Feed request initiated</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">User ID</div>
-                                <div class="detail-value">Authenticated session</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Device</div>
-                                <div class="detail-value">iOS / Android / Web</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Context</div>
-                                <div class="detail-value">Time, Location, History</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 2: Query Hydration -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #1da1f2, #48dbfb);">💧</div>
-                    <div>
-                        <div class="stage-title">Query Hydration</div>
-                        <div class="stage-subtitle">Enrich with user context</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">User Action Sequence</div>
-                                <div class="detail-value">Recent engagement history</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">SimClusters</div>
-                                <div class="detail-value">Topic affinities</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Social Graph</div>
-                                <div class="detail-value">Following, Followers</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Preferences</div>
-                                <div class="detail-value">Muted keywords, Blocks</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 3: Candidate Sources -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #00d4aa, #48dbfb);">🔍</div>
-                    <div>
-                        <div class="stage-title">Candidate Sources</div>
-                        <div class="stage-subtitle">Fetch potential posts</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">Thunder (In-Network)</div>
-                                <div class="detail-value">Posts from accounts you follow</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Phoenix (Out-of-Network)</div>
-                                <div class="detail-value">ML-based discovery</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Trending</div>
-                                <div class="detail-value">High-velocity content</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Candidates</div>
-                                <div class="detail-value">~1,500 posts initially</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 4: Filtering -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #f44336, #ff6b6b);">🚫</div>
-                    <div>
-                        <div class="stage-title">Filtering</div>
-                        <div class="stage-subtitle">Remove ineligible content</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">AgeFilter</div>
-                                <div class="detail-value">Remove old posts</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">DuplicatesFilter</div>
-                                <div class="detail-value">Avoid repetition</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">MutedKeywordFilter</div>
-                                <div class="detail-value">Respect user settings</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">SafetyFilter</div>
-                                <div class="detail-value">NSFW, Spam, Violence</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 5: Scoring -->
-        <div class="stage">
-            <div class="stage-box active" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #feca57, #ff9f43);">⚡</div>
-                    <div>
-                        <div class="stage-title">Scoring</div>
-                        <div class="stage-subtitle">The heart of the algorithm</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <p style="color: #aaa; margin-bottom: 16px;">
-                            The Phoenix Scorer uses Grok-based ML to predict engagement.
-                            These predictions are combined using weights:
-                        </p>
-                        <table class="weights-table">
-                            <tr>
-                                <th>Action</th>
-                                <th>Weight</th>
-                                <th>Impact</th>
-                            </tr>
-                            <tr>
-                                <td>💬 Reply</td>
-                                <td class="weight-positive">27.0</td>
-                                <td>🔥🔥🔥 Highest</td>
-                            </tr>
-                            <tr>
-                                <td>👤 Profile Click</td>
-                                <td class="weight-positive">12.0</td>
-                                <td>🔥🔥 Very High</td>
-                            </tr>
-                            <tr>
-                                <td>❤️ Like</td>
-                                <td class="weight-positive">1.0</td>
-                                <td>Baseline</td>
-                            </tr>
-                            <tr>
-                                <td>🔁 Retweet</td>
-                                <td class="weight-positive">1.0</td>
-                                <td>Baseline</td>
-                            </tr>
-                            <tr>
-                                <td>🎬 Video View</td>
-                                <td class="weight-positive">0.3</td>
-                                <td>Bonus (2+ sec)</td>
-                            </tr>
-                            <tr>
-                                <td>😴 Not Interested</td>
-                                <td class="weight-negative">-74.0</td>
-                                <td>⚠️ Major Penalty</td>
-                            </tr>
-                            <tr>
-                                <td>🚫 Report</td>
-                                <td class="weight-negative">-369.0</td>
-                                <td>☠️ Devastating</td>
-                            </tr>
-                        </table>
-                        <div class="code-block">
-                            <span class="code-comment">// Score calculation from params.rs</span><br>
-                            <span class="code-keyword">let</span> score = <br>
-                            &nbsp;&nbsp;P_reply × <span class="code-number">27.0</span> +<br>
-                            &nbsp;&nbsp;P_profile_click × <span class="code-number">12.0</span> +<br>
-                            &nbsp;&nbsp;P_like × <span class="code-number">1.0</span> +<br>
-                            &nbsp;&nbsp;P_not_interested × <span class="code-number">-74.0</span> +<br>
-                            &nbsp;&nbsp;P_report × <span class="code-number">-369.0</span>;
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 6: Selection -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #a55eea, #8854d0);">🏆</div>
-                    <div>
-                        <div class="stage-title">Selection</div>
-                        <div class="stage-subtitle">Pick the best content</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">Sort By</div>
-                                <div class="detail-value">Weighted Score (descending)</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Select Top K</div>
-                                <div class="detail-value">~50-100 posts</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Diversity</div>
-                                <div class="detail-value">AuthorDiversityScorer applied</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Mix Ratio</div>
-                                <div class="detail-value">In-Network + Out-of-Network</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="arrow"></div>
-
-        <!-- Stage 7: Final Feed -->
-        <div class="stage">
-            <div class="stage-box" onclick="toggleStage(this)">
-                <div class="stage-header">
-                    <div class="stage-icon" style="background: linear-gradient(135deg, #00d4aa, #20bf6b);">✨</div>
-                    <div>
-                        <div class="stage-title">Your "For You" Feed</div>
-                        <div class="stage-subtitle">Personalized, ranked content</div>
-                    </div>
-                </div>
-                <div class="stage-details">
-                    <div class="details-content">
-                        <div class="detail-grid">
-                            <div class="detail-item">
-                                <div class="detail-label">Latency Target</div>
-                                <div class="detail-value">&lt; 50ms p50</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Posts Shown</div>
-                                <div class="detail-value">~20-30 initially</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Refresh</div>
-                                <div class="detail-value">New posts fetched on scroll</div>
-                            </div>
-                            <div class="detail-item">
-                                <div class="detail-label">Feedback</div>
-                                <div class="detail-value">Engagement updates model</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p>Based on the open-source <a href="https://github.com/mangeshraut712/x-algorithm" target="_blank">X
-                Algorithm</a></p>
-        <p style="margin-top: 10px;">
-            <a href="./score-calculator.html">Score Calculator</a> •
-            <a href="../docs/POSTING_STRATEGY.md">Posting Strategy</a> •
-            <a href="../docs/ARCHITECTURE.md">Architecture</a>
-        </p>
-    </footer>
 
     <script>
         function toggleStage(element) {
-            // Remove active from all
-            document.querySelectorAll('.stage-box').forEach(box => {
-                if (box !== element) {
-                    box.classList.remove('active');
-                }
-            });
-            // Toggle clicked
-            element.classList.toggle('active');
+            element.classList.toggle('expanded');
         }
     </script>
 </body>

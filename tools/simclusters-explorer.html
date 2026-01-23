@@ -4,7 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SimClusters Explorer - X Algorithm</title>
+    <title>SimClusters Explorer | X Algorithm</title>
+    <meta name="description" content="Understand how topic clustering affects your content distribution on X.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,256 +16,309 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
+            --yellow: #ffd400;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a0f;
-            color: #e0e0e0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 600px;
             margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
         }
 
         header {
-            text-align: center;
-            margin-bottom: 40px;
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
         }
 
         h1 {
-            font-size: 2.5rem;
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-            margin-bottom: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
         }
 
-        .subtitle {
-            color: #888;
-            font-size: 1rem;
-            max-width: 600px;
-            margin: 0 auto;
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 24px;
+        .section-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        @media (max-width: 900px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Cluster Visualization */
+        .cluster-viz {
+            position: relative;
+            height: 400px;
+            background: var(--bg-secondary);
             border-radius: 16px;
-            padding: 24px;
+            overflow: hidden;
+            margin-bottom: 16px;
         }
 
-        .card-title {
+        .cluster-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .cluster-node:hover {
+            transform: scale(1.1);
+            border-color: var(--text);
+        }
+
+        .cluster-node.selected {
+            border-color: var(--blue);
+            box-shadow: 0 0 20px rgba(29, 155, 240, 0.5);
+        }
+
+        .cluster-label {
+            position: absolute;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Cluster List */
+        .cluster-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cluster-tag {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .cluster-tag:hover {
+            background: var(--bg-secondary);
+        }
+
+        .cluster-tag.selected {
+            border-color: var(--blue);
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        /* Affinity Bar */
+        .affinity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .affinity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .affinity-label {
+            width: 100px;
+            font-size: 0.9rem;
+        }
+
+        .affinity-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .affinity-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .affinity-fill.high {
+            background: linear-gradient(90deg, var(--green), var(--blue));
+        }
+
+        .affinity-fill.medium {
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+        }
+
+        .affinity-fill.low {
+            background: linear-gradient(90deg, var(--orange), var(--pink));
+        }
+
+        .affinity-value {
+            width: 50px;
+            text-align: right;
+            font-weight: 700;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #feca57;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
         }
 
-        .niche-list {
+        .info-title {
+            font-weight: 700;
+        }
+
+        .info-subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .info-content {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Impact Grid */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .impact-item {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .impact-emoji {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .impact-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .impact-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Tips */
+        .tip-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
-        .niche-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .niche-item:hover {
-            background: rgba(254, 202, 87, 0.1);
-            border-color: rgba(254, 202, 87, 0.3);
-        }
-
-        .niche-item.selected {
-            background: rgba(254, 202, 87, 0.15);
-            border-color: #feca57;
-        }
-
-        .niche-icon {
-            font-size: 1.5rem;
-        }
-
-        .niche-name {
-            font-weight: 500;
-        }
-
-        .niche-score {
-            margin-left: auto;
-            color: #feca57;
-            font-weight: bold;
-        }
-
-        .cluster-viz {
-            min-height: 400px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .cluster-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .cluster-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .affinity-meter {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .affinity-bar {
-            width: 150px;
-            height: 8px;
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .affinity-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #feca57, #ff6b6b);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-
-        .affinity-label {
-            color: #feca57;
-            font-weight: bold;
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .content-type {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .content-type.boosted {
-            background: rgba(0, 212, 170, 0.15);
-            border: 1px solid #00d4aa;
-        }
-
-        .content-type.neutral {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .content-type.suppressed {
-            background: rgba(244, 67, 54, 0.1);
-            border: 1px solid rgba(244, 67, 54, 0.3);
-            opacity: 0.6;
-        }
-
-        .content-emoji {
-            font-size: 2rem;
-            margin-bottom: 8px;
-        }
-
-        .content-label {
-            font-size: 0.85rem;
-            color: #aaa;
-        }
-
-        .content-boost {
-            margin-top: 8px;
-            font-weight: bold;
-        }
-
-        .content-boost.positive {
-            color: #00d4aa;
-        }
-
-        .content-boost.negative {
-            color: #f44336;
-        }
-
-        .explanation {
-            margin-top: 24px;
-            padding: 16px;
-            background: rgba(254, 202, 87, 0.1);
-            border-radius: 12px;
-            border-left: 3px solid #feca57;
-        }
-
-        .explanation-title {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #feca57;
-        }
-
-        .explanation-text {
-            color: #aaa;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .strategy-tips {
-            margin-top: 24px;
-        }
-
-        .strategy-tip {
+        .tip-item {
             display: flex;
             gap: 12px;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 8px;
-            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
         }
 
-        .strategy-tip-icon {
+        .tip-icon {
             font-size: 1.2rem;
         }
 
-        .strategy-tip-text {
+        .tip-text {
             font-size: 0.9rem;
-            color: #ccc;
         }
 
         footer {
+            padding: 24px;
             text-align: center;
-            margin-top: 40px;
-            color: #666;
+            color: var(--text-muted);
         }
 
         footer a {
-            color: #feca57;
+            color: var(--blue);
             text-decoration: none;
         }
     </style>
@@ -270,307 +327,199 @@
 <body>
     <div class="container">
         <header>
-            <h1>SimClusters Explorer</h1>
-            <p class="subtitle">
-                Understand how the X algorithm groups users and content into topic clusters.
-                Select a niche to see how content is boosted or suppressed.
-            </p>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🎯 SimClusters Explorer</h1>
         </header>
 
-        <div class="grid">
-            <div class="card">
-                <div class="card-title">🎯 Select Your Niche</div>
-                <div class="niche-list" id="nicheList">
-                    <!-- Generated by JS -->
+        <div class="section">
+            <div class="section-title">🌐 What are SimClusters?</div>
+            <div class="info-card">
+                <div class="info-header">
+                    <div class="info-icon">🧠</div>
+                    <div>
+                        <div class="info-title">Topic-Based User Embeddings</div>
+                        <div class="info-subtitle">How X understands your interests</div>
+                    </div>
+                </div>
+                <div class="info-content">
+                    SimClusters groups users and content into ~145,000 topic clusters. Your posts are distributed to
+                    users who share similar cluster affinities. <strong>Staying in your niche = better
+                        distribution.</strong>
                 </div>
             </div>
+        </div>
 
-            <div class="card cluster-viz">
-                <div class="cluster-header">
-                    <div class="cluster-title" id="clusterTitle">Tech & AI</div>
-                    <div class="affinity-meter">
-                        <span>Affinity:</span>
-                        <div class="affinity-bar">
-                            <div class="affinity-fill" id="affinityFill" style="width: 85%;"></div>
-                        </div>
-                        <span class="affinity-label" id="affinityLabel">85%</span>
-                    </div>
+        <div class="section">
+            <div class="section-title">🎨 Cluster Visualization</div>
+            <div class="section-desc">Click a cluster to explore. Size = audience reach.</div>
+            <div class="cluster-viz" id="clusterViz">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📊 Select Your Niche</div>
+            <div class="cluster-list" id="clusterList">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📈 Your Cluster Affinity</div>
+            <div class="section-desc">How your content would be distributed</div>
+            <div class="affinity-list" id="affinityList">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">⚡ Distribution Impact</div>
+            <div class="impact-grid">
+                <div class="impact-item">
+                    <div class="impact-emoji">✅</div>
+                    <div class="impact-text">Stay in Niche</div>
+                    <div class="impact-subtext">Full distribution to matched users</div>
                 </div>
-
-                <p style="color: #888; margin-bottom: 16px;">
-                    Content performance when you're in this cluster:
-                </p>
-
-                <div class="content-grid" id="contentGrid">
-                    <!-- Generated by JS -->
+                <div class="impact-item">
+                    <div class="impact-emoji">❌</div>
+                    <div class="impact-text">Topic Switch</div>
+                    <div class="impact-subtext">Confuses algorithm, lower reach</div>
                 </div>
-
-                <div class="explanation">
-                    <div class="explanation-title">💡 What This Means</div>
-                    <div class="explanation-text" id="explanationText">
-                        When your audience is clustered in "Tech & AI", posts about technology,
-                        programming, and artificial intelligence get significant algorithmic boost.
-                        However, posts about cooking or travel may get zero distribution to your
-                        followers' feeds.
-                    </div>
+                <div class="impact-item">
+                    <div class="impact-emoji">🎯</div>
+                    <div class="impact-text">Consistent Theme</div>
+                    <div class="impact-subtext">Builds strong cluster affinity</div>
                 </div>
+                <div class="impact-item">
+                    <div class="impact-emoji">🔄</div>
+                    <div class="impact-text">Related Topics</div>
+                    <div class="impact-subtext">OK if clusters overlap</div>
+                </div>
+            </div>
+        </div>
 
-                <div class="strategy-tips">
-                    <div class="card-title">🎯 Strategy Tips</div>
-                    <div id="strategyTips">
-                        <!-- Generated by JS -->
-                    </div>
+        <div class="section">
+            <div class="section-title">💡 SimCluster Strategy Tips</div>
+            <div class="tip-list">
+                <div class="tip-item">
+                    <span class="tip-icon">🎯</span>
+                    <span class="tip-text"><strong>Pick ONE primary niche</strong> and dominate it. Your engaged
+                        audience trains the algorithm.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">🔗</span>
+                    <span class="tip-text"><strong>Related topics are okay</strong> if there's natural cluster overlap
+                        (e.g., AI + Crypto often overlap).</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">⚠️</span>
+                    <span class="tip-text"><strong>Avoid unrelated viral posts</strong>. Going viral in a different
+                        niche can dilute your cluster affinity.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">👥</span>
+                    <span class="tip-text"><strong>Quality followers matter</strong>. Followers in your cluster amplify
+                        your reach within that cluster.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">📊</span>
+                    <span class="tip-text"><strong>Engagement signals train clusters</strong>. Replies and bookmarks
+                        strengthen your cluster positioning.</span>
                 </div>
             </div>
         </div>
 
         <footer>
-            <p>Part of the <a href="https://github.com/mangeshraut712/x-algorithm" target="_blank">X Algorithm</a>
-                toolkit</p>
-            <p style="margin-top: 10px;">
-                <a href="./score-calculator.html">Score Calculator</a> •
-                <a href="./pipeline-visualization.html">Pipeline Visualization</a> •
-                <a href="../docs/POSTING_STRATEGY.md">Posting Strategy</a>
-            </p>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
         </footer>
     </div>
 
     <script>
-        const NICHES = [
-            { id: 'tech', name: 'Tech & AI', icon: '💻', affinity: 85 },
-            { id: 'crypto', name: 'Crypto & Web3', icon: '🪙', affinity: 80 },
-            { id: 'business', name: 'Business & Startup', icon: '📈', affinity: 75 },
-            { id: 'fitness', name: 'Fitness & Health', icon: '💪', affinity: 70 },
-            { id: 'gaming', name: 'Gaming', icon: '🎮', affinity: 82 },
-            { id: 'politics', name: 'Politics & News', icon: '🗳️', affinity: 65 },
-            { id: 'entertainment', name: 'Entertainment', icon: '🎬', affinity: 72 },
-            { id: 'sports', name: 'Sports', icon: '⚽', affinity: 78 },
-            { id: 'fashion', name: 'Fashion & Beauty', icon: '👗', affinity: 68 },
-            { id: 'food', name: 'Food & Cooking', icon: '🍳', affinity: 60 },
+        const clusters = [
+            { id: 1, name: 'Tech / AI', emoji: '🤖', color: '#1d9bf0', size: 80, x: 50, y: 30 },
+            { id: 2, name: 'Crypto / Web3', emoji: '₿', color: '#ff7a00', size: 70, x: 75, y: 45 },
+            { id: 3, name: 'Startups', emoji: '🚀', color: '#00ba7c', size: 65, x: 30, y: 50 },
+            { id: 4, name: 'Finance', emoji: '💰', color: '#ffd400', size: 60, x: 60, y: 65 },
+            { id: 5, name: 'Politics', emoji: '🏛️', color: '#f91880', size: 75, x: 20, y: 70 },
+            { id: 6, name: 'Sports', emoji: '⚽', color: '#7856ff', size: 70, x: 80, y: 75 },
+            { id: 7, name: 'Entertainment', emoji: '🎬', color: '#ff6b6b', size: 55, x: 45, y: 85 },
+            { id: 8, name: 'Science', emoji: '🔬', color: '#4ecdc4', size: 50, x: 70, y: 25 },
         ];
 
-        const CONTENT_TYPES = {
-            tech: [
-                { emoji: '🤖', label: 'AI/ML', boost: '+45%' },
-                { emoji: '💻', label: 'Programming', boost: '+40%' },
-                { emoji: '📱', label: 'Apps/Products', boost: '+35%' },
-                { emoji: '🔐', label: 'Cybersecurity', boost: '+30%' },
-                { emoji: '📊', label: 'Data/Analytics', boost: '+25%' },
-                { emoji: '🎮', label: 'Gaming', boost: '+15%', neutral: true },
-                { emoji: '💰', label: 'Finance', boost: '+10%', neutral: true },
-                { emoji: '🍳', label: 'Food', boost: '-80%', suppressed: true },
-                { emoji: '✈️', label: 'Travel', boost: '-75%', suppressed: true },
-            ],
-            crypto: [
-                { emoji: '₿', label: 'Bitcoin', boost: '+50%' },
-                { emoji: '🔗', label: 'Blockchain', boost: '+45%' },
-                { emoji: 'Ξ', label: 'Ethereum/DeFi', boost: '+40%' },
-                { emoji: '🖼️', label: 'NFTs', boost: '+35%' },
-                { emoji: '📈', label: 'Trading', boost: '+30%' },
-                { emoji: '💻', label: 'Tech', boost: '+20%', neutral: true },
-                { emoji: '🍳', label: 'Food', boost: '-85%', suppressed: true },
-                { emoji: '👗', label: 'Fashion', boost: '-80%', suppressed: true },
-            ],
-            business: [
-                { emoji: '🚀', label: 'Startups', boost: '+45%' },
-                { emoji: '💼', label: 'Leadership', boost: '+40%' },
-                { emoji: '📊', label: 'Growth', boost: '+35%' },
-                { emoji: '💰', label: 'Investing', boost: '+30%' },
-                { emoji: '🤝', label: 'Networking', boost: '+25%' },
-                { emoji: '💻', label: 'Tech', boost: '+20%', neutral: true },
-                { emoji: '🎮', label: 'Gaming', boost: '-60%', suppressed: true },
-                { emoji: '🍳', label: 'Food', boost: '-70%', suppressed: true },
-            ],
-            fitness: [
-                { emoji: '🏋️', label: 'Workouts', boost: '+50%' },
-                { emoji: '🥗', label: 'Nutrition', boost: '+45%' },
-                { emoji: '🧘', label: 'Wellness', boost: '+40%' },
-                { emoji: '🏃', label: 'Running', boost: '+35%' },
-                { emoji: '💪', label: 'Bodybuilding', boost: '+30%' },
-                { emoji: '🧠', label: 'Mental Health', boost: '+20%', neutral: true },
-                { emoji: '💻', label: 'Tech', boost: '-65%', suppressed: true },
-                { emoji: '🪙', label: 'Crypto', boost: '-80%', suppressed: true },
-            ],
-            gaming: [
-                { emoji: '🎮', label: 'Games', boost: '+50%' },
-                { emoji: '🖥️', label: 'PC Gaming', boost: '+45%' },
-                { emoji: '📺', label: 'Streaming', boost: '+40%' },
-                { emoji: '🏆', label: 'Esports', boost: '+35%' },
-                { emoji: '🕹️', label: 'Retro', boost: '+25%' },
-                { emoji: '💻', label: 'Tech', boost: '+15%', neutral: true },
-                { emoji: '📈', label: 'Business', boost: '-70%', suppressed: true },
-                { emoji: '🗳️', label: 'Politics', boost: '-85%', suppressed: true },
-            ],
-            politics: [
-                { emoji: '🗳️', label: 'Elections', boost: '+45%' },
-                { emoji: '📰', label: 'News', boost: '+40%' },
-                { emoji: '⚖️', label: 'Policy', boost: '+35%' },
-                { emoji: '🌍', label: 'World Events', boost: '+30%' },
-                { emoji: '💬', label: 'Commentary', boost: '+25%' },
-                { emoji: '📈', label: 'Economics', boost: '+15%', neutral: true },
-                { emoji: '🎮', label: 'Gaming', boost: '-80%', suppressed: true },
-                { emoji: '🍳', label: 'Food', boost: '-85%', suppressed: true },
-            ],
-            entertainment: [
-                { emoji: '🎬', label: 'Movies', boost: '+45%' },
-                { emoji: '📺', label: 'TV Shows', boost: '+40%' },
-                { emoji: '🎵', label: 'Music', boost: '+35%' },
-                { emoji: '🌟', label: 'Celebrities', boost: '+30%' },
-                { emoji: '🎭', label: 'Comedy', boost: '+25%' },
-                { emoji: '🎮', label: 'Gaming', boost: '+15%', neutral: true },
-                { emoji: '📊', label: 'Business', boost: '-75%', suppressed: true },
-                { emoji: '💻', label: 'Tech', boost: '-70%', suppressed: true },
-            ],
-            sports: [
-                { emoji: '⚽', label: 'Football', boost: '+50%' },
-                { emoji: '🏀', label: 'Basketball', boost: '+45%' },
-                { emoji: '🏈', label: 'NFL', boost: '+40%' },
-                { emoji: '⚾', label: 'Baseball', boost: '+35%' },
-                { emoji: '🎾', label: 'Tennis', boost: '+25%' },
-                { emoji: '💪', label: 'Fitness', boost: '+15%', neutral: true },
-                { emoji: '💻', label: 'Tech', boost: '-75%', suppressed: true },
-                { emoji: '🪙', label: 'Crypto', boost: '-80%', suppressed: true },
-            ],
-            fashion: [
-                { emoji: '👗', label: 'Fashion', boost: '+50%' },
-                { emoji: '💄', label: 'Beauty', boost: '+45%' },
-                { emoji: '👠', label: 'Style', boost: '+40%' },
-                { emoji: '📸', label: 'Photography', boost: '+30%' },
-                { emoji: '🛍️', label: 'Shopping', boost: '+25%' },
-                { emoji: '🎬', label: 'Entertainment', boost: '+15%', neutral: true },
-                { emoji: '💻', label: 'Tech', boost: '-80%', suppressed: true },
-                { emoji: '🪙', label: 'Crypto', boost: '-85%', suppressed: true },
-            ],
-            food: [
-                { emoji: '🍳', label: 'Cooking', boost: '+50%' },
-                { emoji: '🍕', label: 'Recipes', boost: '+45%' },
-                { emoji: '🍷', label: 'Wine/Drinks', boost: '+35%' },
-                { emoji: '🍰', label: 'Baking', boost: '+30%' },
-                { emoji: '🥗', label: 'Healthy Eating', boost: '+25%' },
-                { emoji: '✈️', label: 'Travel', boost: '+15%', neutral: true },
-                { emoji: '💻', label: 'Tech', boost: '-85%', suppressed: true },
-                { emoji: '🪙', label: 'Crypto', boost: '-90%', suppressed: true },
-            ],
-        };
-
-        const STRATEGIES = {
-            tech: [
-                { icon: '🎯', text: 'Focus on AI/ML content - it has the highest algorithmic boost in your niche.' },
-                { icon: '🧵', text: 'Create technical threads that spark discussions among developers.' },
-                { icon: '⚠️', text: 'Avoid lifestyle content like food or travel - it will get near-zero distribution.' },
-                { icon: '🔗', text: 'Cross-pollinate with crypto/business content sparingly - they have related clusters.' },
-            ],
-            crypto: [
-                { icon: '💰', text: 'Bitcoin and market analysis content performs best in your cluster.' },
-                { icon: '📊', text: 'Educational content about DeFi/blockchain gets strong engagement.' },
-                { icon: '⚠️', text: 'Stay away from unrelated niches - they will tank your reach.' },
-                { icon: '🤝', text: 'Engage with other crypto accounts to strengthen cluster signals.' },
-            ],
-            business: [
-                { icon: '🚀', text: 'Startup stories and lessons learned content performs exceptionally well.' },
-                { icon: '📈', text: 'Share growth insights and business frameworks.' },
-                { icon: '💼', text: 'Leadership and management content resonates with your audience.' },
-                { icon: '⚠️', text: 'Avoid gaming or entertainment content - it confuses your cluster.' },
-            ],
-            fitness: [
-                { icon: '💪', text: 'Workout tutorials and transformation content gets the highest boost.' },
-                { icon: '🥗', text: 'Nutrition tips and meal preps are strongly boosted.' },
-                { icon: '🧘', text: 'Mental health and wellness content resonates with your cluster.' },
-                { icon: '⚠️', text: 'Tech and crypto content will get zero distribution to your audience.' },
-            ],
-            gaming: [
-                { icon: '🎮', text: 'Game reviews and gameplay content performs best.' },
-                { icon: '📺', text: 'Streaming highlights and clips get strong engagement.' },
-                { icon: '🏆', text: 'Esports commentary aligns well with your cluster.' },
-                { icon: '⚠️', text: 'Avoid politics and business content - major cluster mismatch.' },
-            ],
-            politics: [
-                { icon: '🗳️', text: 'Election and policy analysis gets the highest boost.' },
-                { icon: '📰', text: 'Breaking news commentary performs well.' },
-                { icon: '💬', text: 'Hot takes and debates drive engagement (but watch for blocks).' },
-                { icon: '⚠️', text: 'Gaming and food content will confuse your cluster assignment.' },
-            ],
-            entertainment: [
-                { icon: '🎬', text: 'Movie and TV show discussions perform exceptionally well.' },
-                { icon: '🎵', text: 'Music content and artist discussions get strong boost.' },
-                { icon: '🌟', text: 'Celebrity news aligns with your cluster.' },
-                { icon: '⚠️', text: 'Business and tech content will get suppressed.' },
-            ],
-            sports: [
-                { icon: '⚽', text: 'Game analysis and highlights get the highest boost.' },
-                { icon: '🏆', text: 'Player stats and trade discussions perform well.' },
-                { icon: '💪', text: 'Fitness content has some crossover appeal.' },
-                { icon: '⚠️', text: 'Tech and crypto content will get zero distribution.' },
-            ],
-            fashion: [
-                { icon: '👗', text: 'Outfit posts and style guides get the highest boost.' },
-                { icon: '💄', text: 'Beauty tutorials and product reviews perform well.' },
-                { icon: '📸', text: 'High-quality visual content is essential.' },
-                { icon: '⚠️', text: 'Tech and crypto content will tank your reach.' },
-            ],
-            food: [
-                { icon: '🍳', text: 'Recipe videos and cooking tutorials get the highest boost.' },
-                { icon: '📸', text: 'Food photography matters - visual content wins.' },
-                { icon: '🥗', text: 'Healthy eating content has crossover with fitness.' },
-                { icon: '⚠️', text: 'Tech and crypto content will get near-zero distribution.' },
-            ],
-        };
-
-        let selectedNiche = 'tech';
-
-        function renderNicheList() {
-            const container = document.getElementById('nicheList');
-            container.innerHTML = NICHES.map(niche => `
-                <div class="niche-item ${niche.id === selectedNiche ? 'selected' : ''}" 
-                     onclick="selectNiche('${niche.id}')">
-                    <span class="niche-icon">${niche.icon}</span>
-                    <span class="niche-name">${niche.name}</span>
-                    <span class="niche-score">${niche.affinity}%</span>
-                </div>
-            `).join('');
-        }
-
-        function selectNiche(nicheId) {
-            selectedNiche = nicheId;
-            renderNicheList();
-            renderClusterViz();
-        }
+        let selectedCluster = clusters[0];
 
         function renderClusterViz() {
-            const niche = NICHES.find(n => n.id === selectedNiche);
-            const contentTypes = CONTENT_TYPES[selectedNiche] || CONTENT_TYPES.tech;
-            const strategies = STRATEGIES[selectedNiche] || STRATEGIES.tech;
-
-            document.getElementById('clusterTitle').textContent = niche.name;
-            document.getElementById('affinityFill').style.width = niche.affinity + '%';
-            document.getElementById('affinityLabel').textContent = niche.affinity + '%';
-
-            const contentGrid = document.getElementById('contentGrid');
-            contentGrid.innerHTML = contentTypes.map(ct => `
-                <div class="content-type ${ct.suppressed ? 'suppressed' : (ct.neutral ? 'neutral' : 'boosted')}">
-                    <div class="content-emoji">${ct.emoji}</div>
-                    <div class="content-label">${ct.label}</div>
-                    <div class="content-boost ${ct.suppressed ? 'negative' : 'positive'}">${ct.boost}</div>
-                </div>
-            `).join('');
-
-            document.getElementById('explanationText').textContent =
-                `When your audience is clustered in "${niche.name}", posts about related topics get significant 
-                algorithmic boost. However, posts about unrelated topics may get zero distribution to your 
-                followers' feeds because they don't match the SimCluster expectation.`;
-
-            const strategyTips = document.getElementById('strategyTips');
-            strategyTips.innerHTML = strategies.map(s => `
-                <div class="strategy-tip">
-                    <span class="strategy-tip-icon">${s.icon}</span>
-                    <span class="strategy-tip-text">${s.text}</span>
+            const viz = document.getElementById('clusterViz');
+            viz.innerHTML = clusters.map(c => `
+                <div class="cluster-node ${c.id === selectedCluster.id ? 'selected' : ''}"
+                     style="
+                         left: ${c.x}%;
+                         top: ${c.y}%;
+                         width: ${c.size}px;
+                         height: ${c.size}px;
+                         background: ${c.color};
+                         transform: translate(-50%, -50%);
+                         font-size: ${c.size / 2.5}px;
+                     "
+                     onclick="selectCluster(${c.id})"
+                     title="${c.name}">
+                    ${c.emoji}
                 </div>
             `).join('');
         }
 
-        // Initialize
-        renderNicheList();
+        function renderClusterList() {
+            const list = document.getElementById('clusterList');
+            list.innerHTML = clusters.map(c => `
+                <div class="cluster-tag ${c.id === selectedCluster.id ? 'selected' : ''}"
+                     onclick="selectCluster(${c.id})"
+                     style="border-color: ${c.id === selectedCluster.id ? c.color : 'transparent'};">
+                    ${c.emoji} ${c.name}
+                </div>
+            `).join('');
+        }
+
+        function renderAffinityList() {
+            const list = document.getElementById('affinityList');
+
+            // Generate affinities based on selected cluster
+            const affinities = clusters.map(c => {
+                let affinity;
+                if (c.id === selectedCluster.id) {
+                    affinity = 85 + Math.random() * 15;
+                } else {
+                    // Related clusters get higher affinity
+                    const distance = Math.abs(c.x - selectedCluster.x) + Math.abs(c.y - selectedCluster.y);
+                    affinity = Math.max(5, 50 - distance / 2 + Math.random() * 20);
+                }
+                return { ...c, affinity: Math.round(affinity) };
+            }).sort((a, b) => b.affinity - a.affinity);
+
+            list.innerHTML = affinities.map(c => {
+                const level = c.affinity > 70 ? 'high' : (c.affinity > 40 ? 'medium' : 'low');
+                return `
+                    <div class="affinity-item">
+                        <span class="affinity-label">${c.emoji} ${c.name}</span>
+                        <div class="affinity-bar">
+                            <div class="affinity-fill ${level}" style="width: ${c.affinity}%;"></div>
+                        </div>
+                        <span class="affinity-value">${c.affinity}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectCluster(id) {
+            selectedCluster = clusters.find(c => c.id === id);
+            renderClusterViz();
+            renderClusterList();
+            renderAffinityList();
+        }
+
+        // Initial render
         renderClusterViz();
+        renderClusterList();
+        renderAffinityList();
     </script>
 </body>
 
