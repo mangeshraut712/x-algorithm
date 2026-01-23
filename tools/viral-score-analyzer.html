@@ -7,6 +7,11 @@
     <title>Will It Go Viral? | X Algorithm Post Analyzer</title>
     <meta name="description"
         content="Analyze your posts before publishing. Get your viral score based on X's actual algorithm.">
+    <meta property="og:title" content="Will It Go Viral? - X Algorithm Analyzer">
+    <meta property="og:description" content="Get your viral score before you post. Based on X's open-source algorithm.">
+    <meta property="og:type" content="website">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     <style>
         * {
             margin: 0;
@@ -17,6 +22,7 @@
         :root {
             --bg-dark: #0d0d0d;
             --bg-card: #1a1a1a;
+            --bg-card-hover: #222;
             --border: #2a2a2a;
             --text: #ffffff;
             --text-muted: #888888;
@@ -26,6 +32,8 @@
             --danger-bg: #2a0a0a;
             --warning: #f59e0b;
             --warning-bg: #2a1a0a;
+            --primary: #3b82f6;
+            --purple: #8b5cf6;
         }
 
         body {
@@ -33,18 +41,53 @@
             background: var(--bg-dark);
             color: var(--text);
             min-height: 100vh;
-            padding: 20px;
             line-height: 1.6;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
         }
 
         header {
             text-align: center;
-            padding: 40px 0;
+            padding: 40px 0 30px;
         }
 
         .logo {
@@ -63,20 +106,33 @@
             font-size: 1rem;
         }
 
-        .input-section {
+        /* Tabs Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 24px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .input-label {
+        .card-title {
             font-weight: 600;
-            margin-bottom: 12px;
-            display: block;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        /* Input Section */
         textarea {
             width: 100%;
             min-height: 150px;
@@ -115,39 +171,58 @@
             color: var(--danger);
         }
 
-        .analyze-btn {
-            width: 100%;
-            padding: 16px 24px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+        /* Buttons */
+        .btn {
+            padding: 14px 24px;
             border: none;
             border-radius: 12px;
-            color: white;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--purple));
+            color: white;
             margin-top: 16px;
         }
 
-        .analyze-btn:hover {
+        .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 40px rgba(59, 130, 246, 0.3);
         }
 
-        .analyze-btn:disabled {
+        .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
-        /* Results Section */
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        /* Results */
         .results {
             display: none;
+            animation: fadeIn 0.5s ease;
         }
 
         .results.visible {
             display: block;
-            animation: fadeIn 0.5s ease;
         }
 
         @keyframes fadeIn {
@@ -174,43 +249,34 @@
         }
 
         .result-title-section h2 {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 4px;
         }
 
         .result-title-section h3 {
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
         }
 
-        .result-header.success .result-title-section h2 {
+        .result-header.success h2,
+        .result-header.success h3 {
             color: var(--success);
         }
 
-        .result-header.success .result-title-section h3 {
-            color: var(--success);
-        }
-
-        .result-header.danger .result-title-section h2 {
+        .result-header.danger h2,
+        .result-header.danger h3 {
             color: var(--danger);
         }
 
-        .result-header.danger .result-title-section h3 {
-            color: var(--danger);
-        }
-
-        .result-header.warning .result-title-section h2 {
-            color: var(--warning);
-        }
-
-        .result-header.warning .result-title-section h3 {
+        .result-header.warning h2,
+        .result-header.warning h3 {
             color: var(--warning);
         }
 
         .post-preview {
-            background: var(--bg-card);
+            background: var(--bg-dark);
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 20px;
@@ -219,11 +285,11 @@
             color: #ccc;
             line-height: 1.6;
             white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         .score-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
             border-radius: 16px;
             padding: 32px;
             text-align: center;
@@ -232,21 +298,21 @@
 
         .score-card.success {
             background: var(--success-bg);
-            border-color: #1a4a2a;
+            border: 1px solid #1a4a2a;
         }
 
         .score-card.danger {
             background: var(--danger-bg);
-            border-color: #4a1a1a;
+            border: 1px solid #4a1a1a;
         }
 
         .score-card.warning {
             background: var(--warning-bg);
-            border-color: #4a3a1a;
+            border: 1px solid #4a3a1a;
         }
 
         .score-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 2px;
             margin-bottom: 8px;
@@ -265,7 +331,7 @@
         }
 
         .score-number {
-            font-size: 5rem;
+            font-size: 4.5rem;
             font-weight: 800;
             line-height: 1;
         }
@@ -283,7 +349,7 @@
         }
 
         .score-max {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--text-muted);
         }
 
@@ -293,6 +359,7 @@
             border-radius: 20px;
             font-weight: 600;
             margin-top: 16px;
+            font-size: 0.9rem;
         }
 
         .score-card.success .score-badge {
@@ -328,7 +395,7 @@
         }
 
         .signal-icon {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
 
         .signal-text {
@@ -362,27 +429,188 @@
         }
 
         .prediction-stats .likes {
-            color: #3b82f6;
+            color: var(--primary);
             font-weight: 600;
         }
 
-        .try-again-btn {
-            width: 100%;
-            padding: 14px;
-            background: transparent;
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .action-buttons .btn {
+            flex: 1;
+        }
+
+        /* History Tab */
+        .history-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .history-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .history-item {
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
-            color: var(--text);
-            font-size: 1rem;
+            padding: 16px;
             cursor: pointer;
-            margin-top: 24px;
             transition: all 0.2s ease;
         }
 
-        .try-again-btn:hover {
-            background: var(--bg-card);
+        .history-item:hover {
+            background: var(--bg-card-hover);
+            border-color: #3a3a3a;
         }
 
+        .history-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-score {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .history-score.success {
+            color: var(--success);
+        }
+
+        .history-score.danger {
+            color: var(--danger);
+        }
+
+        .history-score.warning {
+            color: var(--warning);
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .history-preview {
+            font-size: 0.9rem;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .clear-history-btn {
+            margin-top: 20px;
+        }
+
+        /* Compare Tab */
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .compare-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .compare-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .compare-textarea {
+            min-height: 120px;
+            font-size: 0.9rem;
+        }
+
+        .compare-results {
+            display: none;
+        }
+
+        .compare-results.visible {
+            display: block;
+        }
+
+        .compare-result-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 16px;
+            align-items: center;
+            margin-top: 24px;
+        }
+
+        .compare-score-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .compare-score-card.winner {
+            background: var(--success-bg);
+            border: 2px solid var(--success);
+        }
+
+        .compare-score-card.loser {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            opacity: 0.7;
+        }
+
+        .compare-score-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .compare-vs {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .winner-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--success);
+            color: black;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+
+        /* Footer */
         footer {
             text-align: center;
             padding: 40px 20px;
@@ -391,88 +619,215 @@
         }
 
         footer a {
-            color: #3b82f6;
+            color: var(--primary);
             text-decoration: none;
         }
 
         /* Responsive */
         @media (max-width: 480px) {
             .score-number {
-                font-size: 4rem;
+                font-size: 3.5rem;
             }
 
             h1 {
                 font-size: 1.5rem;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 
 <body>
+    <nav>
+        <button class="nav-btn active" onclick="switchTab('analyze')" id="nav-analyze">✨ Analyze</button>
+        <button class="nav-btn" onclick="switchTab('compare')" id="nav-compare">⚔️ Compare</button>
+        <button class="nav-btn" onclick="switchTab('history')" id="nav-history">📜 History</button>
+    </nav>
+
     <div class="container">
         <header>
             <div class="logo">🚀</div>
             <h1>Will It Go Viral?</h1>
-            <p class="tagline">Analyze your post using X's actual algorithm</p>
+            <p class="tagline">Analyze your post using X's actual algorithm weights</p>
         </header>
 
-        <div id="inputSection" class="input-section">
-            <label class="input-label">Paste your post</label>
-            <textarea id="postInput" placeholder="Ever wonder why some posts get 100K views and others die at 12?
+        <!-- ANALYZE TAB -->
+        <div class="tab-content active" id="tab-analyze">
+            <div id="inputSection">
+                <div class="card">
+                    <div class="card-title">📝 Your Post</div>
+                    <textarea id="postInput" placeholder="Ever wonder why some posts get 100K views and others die at 12?
 
 X just open-sourced their algorithm. I read all 15,000+ lines.
 
 Here's what I learned..." oninput="updateCharCount()"></textarea>
-            <div class="char-counter" id="charCounter">0 / 280</div>
-            <button class="analyze-btn" id="analyzeBtn" onclick="analyzePost()">
-                Analyze Post ✨
-            </button>
+                    <div class="char-counter" id="charCounter">0 / 280</div>
+                    <button class="btn btn-primary" id="analyzeBtn" onclick="analyzePost()">
+                        Analyze Post ✨
+                    </button>
+                </div>
+            </div>
+
+            <div class="results" id="results">
+                <div class="result-header" id="resultHeader">
+                    <div class="result-icon" id="resultIcon">✅</div>
+                    <div class="result-title-section">
+                        <h2 id="resultCategory">POSTS THAT POP</h2>
+                        <h3 id="resultTitle">High Score</h3>
+                    </div>
+                </div>
+
+                <div class="post-preview" id="postPreview"></div>
+
+                <div class="score-card" id="scoreCard">
+                    <div class="score-label">VIRAL SCORE</div>
+                    <div>
+                        <span class="score-number" id="scoreNumber">89</span>
+                        <span class="score-max">/ 100</span>
+                    </div>
+                    <div class="score-badge" id="scoreBadge">VIRAL POTENTIAL 🚀</div>
+                </div>
+
+                <div class="signals-list" id="signalsList"></div>
+
+                <div class="prediction-card">
+                    <div class="prediction-label">Predicted Performance</div>
+                    <div class="prediction-stats">
+                        <span class="views" id="predViews">8,400 views</span>
+                        <span>·</span>
+                        <span class="likes" id="predLikes">340 likes</span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="saveToHistory()">
+                        💾 Save
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetAnalyzer()">
+                        ✍️ New Post
+                    </button>
+                </div>
+            </div>
         </div>
 
-        <div class="results" id="results">
-            <div class="result-header" id="resultHeader">
-                <div class="result-icon" id="resultIcon">✅</div>
-                <div class="result-title-section">
-                    <h2 id="resultCategory">POSTS THAT POP</h2>
-                    <h3 id="resultTitle">High Score</h3>
+        <!-- COMPARE TAB -->
+        <div class="tab-content" id="tab-compare">
+            <div class="card">
+                <div class="card-title">⚔️ A/B Test Your Posts</div>
+                <p style="color: var(--text-muted); margin-bottom: 20px; font-size: 0.9rem;">
+                    Compare two versions to see which will perform better
+                </p>
+
+                <div class="compare-grid">
+                    <div class="compare-card">
+                        <div class="compare-label">Version A</div>
+                        <textarea class="compare-textarea" id="compareA"
+                            placeholder="First version of your post..."></textarea>
+                    </div>
+                    <div class="compare-card">
+                        <div class="compare-label">Version B</div>
+                        <textarea class="compare-textarea" id="compareB"
+                            placeholder="Alternative version..."></textarea>
+                    </div>
                 </div>
+
+                <button class="btn btn-primary" onclick="comparePosts()">
+                    Compare Posts ⚔️
+                </button>
             </div>
 
-            <div class="post-preview" id="postPreview"></div>
-
-            <div class="score-card" id="scoreCard">
-                <div class="score-label">VIRAL SCORE</div>
-                <div>
-                    <span class="score-number" id="scoreNumber">89</span>
-                    <span class="score-max">/ 100</span>
+            <div class="compare-results" id="compareResults">
+                <div class="compare-result-grid">
+                    <div class="compare-score-card" id="compareCardA">
+                        <div class="compare-label">Version A</div>
+                        <div class="compare-score-number" id="compareScoreA">72</div>
+                        <div id="compareBadgeA"></div>
+                    </div>
+                    <div class="compare-vs">VS</div>
+                    <div class="compare-score-card" id="compareCardB">
+                        <div class="compare-label">Version B</div>
+                        <div class="compare-score-number" id="compareScoreB">85</div>
+                        <div id="compareBadgeB"></div>
+                    </div>
                 </div>
-                <div class="score-badge" id="scoreBadge">VIRAL POTENTIAL 🚀</div>
+
+                <div class="card" style="margin-top: 24px;">
+                    <div class="card-title">💡 Recommendation</div>
+                    <p id="compareRecommendation" style="color: #ccc;"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY TAB -->
+        <div class="tab-content" id="tab-history">
+            <div id="historyEmpty" class="history-empty">
+                <div class="history-empty-icon">📭</div>
+                <h3>No saved posts yet</h3>
+                <p style="margin-top: 8px;">Analyze posts and save them to track your progress</p>
             </div>
 
-            <div class="signals-list" id="signalsList"></div>
+            <div id="historyContent" style="display: none;">
+                <div class="card">
+                    <div class="card-title">📊 Your Post History</div>
+                    <div class="history-list" id="historyList"></div>
+                    <button class="btn btn-secondary btn-small clear-history-btn" onclick="clearHistory()">
+                        🗑️ Clear History
+                    </button>
+                </div>
 
-            <div class="prediction-card">
-                <div class="prediction-label">Predicted Performance</div>
-                <div class="prediction-stats">
-                    <span class="views" id="predViews">8,400 views</span>
-                    <span>·</span>
-                    <span class="likes" id="predLikes">340 likes</span>
+                <div class="card">
+                    <div class="card-title">📈 Stats</div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700;" id="statTotal">0</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Posts Analyzed</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--success);" id="statAvg">0</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Avg Score</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="statBest">0</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Best Score</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <button class="try-again-btn" onclick="resetAnalyzer()">
-                Analyze Another Post
-            </button>
         </div>
 
         <footer>
             <p>Based on the <a href="https://github.com/xai-org/x-algorithm" target="_blank">open-source X algorithm</a>
             </p>
-            <p style="margin-top: 8px;">Built with the algorithm's actual scoring weights</p>
+            <p style="margin-top: 8px;">Reply weight: 27x · Profile click: 12x · Not interested: -74x</p>
         </footer>
     </div>
 
     <script>
+        // State
+        let currentAnalysis = null;
+        let history = JSON.parse(localStorage.getItem('viralScoreHistory') || '[]');
+
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('nav-' + tabName).classList.add('active');
+
+            if (tabName === 'history') {
+                renderHistory();
+            }
+        }
+
+        // Character count
         function updateCharCount() {
             const text = document.getElementById('postInput').value;
             const counter = document.getElementById('charCounter');
@@ -487,164 +842,94 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             document.getElementById('analyzeBtn').disabled = len === 0;
         }
 
-        function analyzePost() {
-            const text = document.getElementById('postInput').value.trim();
-            if (!text) return;
-
-            // Hide input, show results
-            document.getElementById('inputSection').style.display = 'none';
-            document.getElementById('results').classList.add('visible');
-
-            // Set preview
-            document.getElementById('postPreview').textContent = text;
-
-            // Analyze signals
-            const signals = analyzeSignals(text);
-            const score = calculateScore(signals);
-
-            // Update UI
-            updateResultsUI(score, signals, text);
-        }
-
+        // Analyze signals
         function analyzeSignals(text) {
             const signals = [];
             const lowerText = text.toLowerCase();
 
-            // Hook detection (first line grabs attention)
+            // Hook detection
             const firstLine = text.split('\n')[0];
             const hookPatterns = [
-                /^(ever|what if|here's|how|why|the|i just|breaking|unpopular|hot take)/i,
+                /^(ever|what if|here's|how|why|the|i just|breaking|unpopular|hot take|stop|this is)/i,
                 /\?$/,
                 /^\d+/,
-                /(secret|truth|nobody|everyone|always|never)/i
+                /(secret|truth|nobody|everyone|always|never|most people)/i
             ];
-            const hasHook = hookPatterns.some(p => p.test(firstLine)) || firstLine.length < 80;
-            signals.push({
-                positive: hasHook,
-                text: hasHook ? 'Strong hook' : 'No hook',
-                weight: 15
-            });
+            const hasHook = hookPatterns.some(p => p.test(firstLine)) || firstLine.length < 60;
+            signals.push({ positive: hasHook, text: hasHook ? 'Strong hook' : 'No hook', weight: 15 });
 
-            // Question detection (drives replies - 27x weight!)
+            // Question detection
             const hasQuestion = text.includes('?');
-            signals.push({
-                positive: hasQuestion,
-                text: hasQuestion ? 'Asks question' : 'No question',
-                weight: 20
-            });
+            signals.push({ positive: hasQuestion, text: hasQuestion ? 'Asks question' : 'No question', weight: 20 });
 
-            // Formatting (line breaks, not a wall of text)
+            // Formatting
             const lineCount = text.split('\n').filter(l => l.trim()).length;
             const hasFormatting = lineCount >= 3 || text.length < 150;
-            signals.push({
-                positive: hasFormatting,
-                text: hasFormatting ? 'Good formatting' : 'Wall of text',
-                weight: 10
-            });
+            signals.push({ positive: hasFormatting, text: hasFormatting ? 'Good formatting' : 'Wall of text', weight: 10 });
 
-            // Data/specifics (numbers, $, %)
+            // Data/specifics
             const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
             const dataMatch = text.match(/\$[\d,]+[kKmM]?|\d+[%]|\d{1,3}[,]\d{3}/);
-            signals.push({
-                positive: hasData,
-                text: hasData ? `Has data (${dataMatch ? dataMatch[0] : 'numbers'})` : 'No specific data',
-                weight: 12
-            });
+            signals.push({ positive: hasData, text: hasData ? `Has data (${dataMatch ? dataMatch[0] : 'numbers'})` : 'No specific data', weight: 12 });
 
-            // Controversy/strong opinion
-            const controversyWords = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always)/i;
-            const hasControversy = controversyWords.test(text);
-            signals.push({
-                positive: hasControversy,
-                text: hasControversy ? 'Takes a stance' : 'No strong opinion',
-                weight: 8
-            });
+            // Controversy
+            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie)/i.test(text);
+            signals.push({ positive: hasControversy, text: hasControversy ? 'Takes a stance' : 'No strong opinion', weight: 8 });
 
-            // CTA (call to action)
-            const ctaPatterns = /(follow|share|repost|save this|bookmark|try it|check|link|comment|reply|thoughts\??)/i;
-            const hasCTA = ctaPatterns.test(text);
-            signals.push({
-                positive: hasCTA,
-                text: hasCTA ? 'Clear CTA' : 'Vague CTA',
-                weight: 10
-            });
+            // CTA
+            const hasCTA = /(follow|share|repost|save this|bookmark|try it|check|link|comment|reply|thoughts\??|what do you think|agree\?)/i.test(text);
+            signals.push({ positive: hasCTA, text: hasCTA ? 'Clear CTA' : 'No CTA', weight: 10 });
 
-            // Thread indicator
-            const hasThread = text.includes('🧵') || lowerText.includes('thread') || lowerText.includes('1/') || lowerText.includes('1.') && lowerText.includes('2.');
-            if (hasThread) {
-                signals.push({
-                    positive: true,
-                    text: 'Thread format',
-                    weight: 8
-                });
+            // Thread
+            const hasThread = text.includes('🧵') || lowerText.includes('thread') || /\b1[\.\/]/m.test(text);
+            if (hasThread) signals.push({ positive: true, text: 'Thread format', weight: 8 });
+
+            // Lists
+            const hasList = /^\s*[\d\-•]/m.test(text);
+            if (hasList) signals.push({ positive: true, text: 'Structured list', weight: 6 });
+
+            // Emoji
+            const emojiCount = (text.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
+            if (emojiCount >= 1 && emojiCount <= 5) {
+                signals.push({ positive: true, text: 'Good emoji use', weight: 4 });
             }
 
-            // Lists/structure
-            const hasList = /^\d+[\.\)]/m.test(text) || /^[\-•]/m.test(text);
-            if (hasList) {
-                signals.push({
-                    positive: true,
-                    text: 'Structured list',
-                    weight: 6
-                });
-            }
+            // Negatives
+            const hasLink = /(https?:\/\/|www\.|\.com\/|\.xyz\/|\.io\/)/i.test(text);
+            if (hasLink) signals.push({ positive: false, text: 'Contains link (-15)', weight: -15 });
 
-            // Link penalty
-            const hasLink = /(https?:\/\/|http:\/\/|www\.|\.com|\.xyz|\.io)/i.test(text);
-            if (hasLink) {
-                signals.push({
-                    positive: false,
-                    text: 'Contains link (penalty)',
-                    weight: -15
-                });
-            }
-
-            // Too many hashtags
             const hashtagCount = (text.match(/#\w+/g) || []).length;
-            if (hashtagCount > 2) {
-                signals.push({
-                    positive: false,
-                    text: `Too many hashtags (${hashtagCount})`,
-                    weight: -8
-                });
-            }
+            if (hashtagCount > 2) signals.push({ positive: false, text: `Too many hashtags (${hashtagCount})`, weight: -8 });
 
-            // Too short
-            if (text.length < 30) {
-                signals.push({
-                    positive: false,
-                    text: 'Too short',
-                    weight: -10
-                });
-            }
-
-            // Over character limit
-            if (text.length > 280) {
-                signals.push({
-                    positive: false,
-                    text: 'Over 280 chars',
-                    weight: -5
-                });
-            }
+            if (text.length < 30) signals.push({ positive: false, text: 'Too short', weight: -10 });
+            if (text.length > 280) signals.push({ positive: false, text: 'Over 280 chars', weight: -5 });
 
             return signals;
         }
 
         function calculateScore(signals) {
-            let score = 50; // Base score
-
-            signals.forEach(s => {
-                if (s.positive) {
-                    score += s.weight;
-                } else {
-                    score += s.weight; // Already negative
-                }
-            });
-
+            let score = 50;
+            signals.forEach(s => score += s.weight * (s.positive ? 1 : 1));
             return Math.max(0, Math.min(100, Math.round(score)));
         }
 
-        function updateResultsUI(score, signals, text) {
+        // Analyze post
+        function analyzePost() {
+            const text = document.getElementById('postInput').value.trim();
+            if (!text) return;
+
+            document.getElementById('inputSection').style.display = 'none';
+            document.getElementById('results').classList.add('visible');
+            document.getElementById('postPreview').textContent = text;
+
+            const signals = analyzeSignals(text);
+            const score = calculateScore(signals);
+
+            currentAnalysis = { text, signals, score, date: new Date().toISOString() };
+            updateResultsUI(score, signals);
+        }
+
+        function updateResultsUI(score, signals) {
             const header = document.getElementById('resultHeader');
             const scoreCard = document.getElementById('scoreCard');
             const icon = document.getElementById('resultIcon');
@@ -652,7 +937,6 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             const title = document.getElementById('resultTitle');
             const badge = document.getElementById('scoreBadge');
 
-            // Determine tier
             let tier;
             if (score >= 75) {
                 tier = 'success';
@@ -678,21 +962,16 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             scoreCard.className = `score-card ${tier}`;
             document.getElementById('scoreNumber').textContent = score;
 
-            // Render signals
-            const signalsList = document.getElementById('signalsList');
-            signalsList.innerHTML = signals.map(s => `
+            document.getElementById('signalsList').innerHTML = signals.map(s => `
                 <div class="signal-item">
                     <span class="signal-icon">${s.positive ? '✅' : '❌'}</span>
                     <span class="signal-text">${s.text}</span>
                 </div>
             `).join('');
 
-            // Predict performance
             const baseViews = score >= 75 ? 5000 : (score >= 50 ? 500 : 50);
-            const multiplier = score / 50;
-            const views = Math.round(baseViews * multiplier);
+            const views = Math.round(baseViews * (score / 50));
             const likes = Math.round(views * 0.04);
-
             document.getElementById('predViews').textContent = views.toLocaleString() + ' views';
             document.getElementById('predLikes').textContent = likes.toLocaleString() + ' likes';
         }
@@ -701,10 +980,114 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             document.getElementById('inputSection').style.display = 'block';
             document.getElementById('results').classList.remove('visible');
             document.getElementById('postInput').value = '';
+            currentAnalysis = null;
             updateCharCount();
         }
 
-        // Initial state
+        // History
+        function saveToHistory() {
+            if (!currentAnalysis) return;
+            history.unshift(currentAnalysis);
+            if (history.length > 20) history.pop();
+            localStorage.setItem('viralScoreHistory', JSON.stringify(history));
+            alert('Saved to history!');
+        }
+
+        function renderHistory() {
+            const empty = document.getElementById('historyEmpty');
+            const content = document.getElementById('historyContent');
+            const list = document.getElementById('historyList');
+
+            if (history.length === 0) {
+                empty.style.display = 'block';
+                content.style.display = 'none';
+                return;
+            }
+
+            empty.style.display = 'none';
+            content.style.display = 'block';
+
+            list.innerHTML = history.map((item, i) => {
+                const tier = item.score >= 75 ? 'success' : (item.score >= 50 ? 'warning' : 'danger');
+                const date = new Date(item.date).toLocaleDateString();
+                return `
+                    <div class="history-item" onclick="loadFromHistory(${i})">
+                        <div class="history-item-header">
+                            <span class="history-score ${tier}">${item.score}/100</span>
+                            <span class="history-date">${date}</span>
+                        </div>
+                        <div class="history-preview">${item.text.substring(0, 100)}...</div>
+                    </div>
+                `;
+            }).join('');
+
+            // Stats
+            const total = history.length;
+            const avg = Math.round(history.reduce((sum, h) => sum + h.score, 0) / total);
+            const best = Math.max(...history.map(h => h.score));
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statAvg').textContent = avg;
+            document.getElementById('statBest').textContent = best;
+        }
+
+        function loadFromHistory(index) {
+            const item = history[index];
+            switchTab('analyze');
+            document.getElementById('postInput').value = item.text;
+            updateCharCount();
+            analyzePost();
+        }
+
+        function clearHistory() {
+            if (confirm('Clear all history?')) {
+                history = [];
+                localStorage.removeItem('viralScoreHistory');
+                renderHistory();
+            }
+        }
+
+        // Compare
+        function comparePosts() {
+            const textA = document.getElementById('compareA').value.trim();
+            const textB = document.getElementById('compareB').value.trim();
+
+            if (!textA || !textB) {
+                alert('Please enter both posts');
+                return;
+            }
+
+            const signalsA = analyzeSignals(textA);
+            const signalsB = analyzeSignals(textB);
+            const scoreA = calculateScore(signalsA);
+            const scoreB = calculateScore(signalsB);
+
+            document.getElementById('compareResults').classList.add('visible');
+            document.getElementById('compareScoreA').textContent = scoreA;
+            document.getElementById('compareScoreB').textContent = scoreB;
+
+            const cardA = document.getElementById('compareCardA');
+            const cardB = document.getElementById('compareCardB');
+            const badgeA = document.getElementById('compareBadgeA');
+            const badgeB = document.getElementById('compareBadgeB');
+
+            cardA.className = 'compare-score-card ' + (scoreA >= scoreB ? 'winner' : 'loser');
+            cardB.className = 'compare-score-card ' + (scoreB > scoreA ? 'winner' : 'loser');
+
+            badgeA.innerHTML = scoreA >= scoreB ? '<span class="winner-badge">WINNER</span>' : '';
+            badgeB.innerHTML = scoreB > scoreA ? '<span class="winner-badge">WINNER</span>' : '';
+
+            const diff = Math.abs(scoreA - scoreB);
+            const winner = scoreA >= scoreB ? 'A' : 'B';
+            const rec = document.getElementById('compareRecommendation');
+
+            if (diff <= 5) {
+                rec.textContent = `Both versions are similar (${diff} point difference). Try testing with your audience to see which resonates more.`;
+            } else {
+                rec.textContent = `Version ${winner} scores ${diff} points higher. It has better viral potential due to stronger signals.`;
+            }
+        }
+
+        // Init
         updateCharCount();
     </script>
 </body>
