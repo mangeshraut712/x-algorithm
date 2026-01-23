@@ -842,74 +842,150 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
             document.getElementById('analyzeBtn').disabled = len === 0;
         }
 
-        // Analyze signals
+        // Analyze signals - Updated based on real @mrcommando712 post performance
         function analyzeSignals(text) {
             const signals = [];
             const lowerText = text.toLowerCase();
 
-            // Hook detection
-            const firstLine = text.split('\n')[0];
-            const hookPatterns = [
-                /^(ever|what if|here's|how|why|the|i just|breaking|unpopular|hot take|stop|this is)/i,
-                /\?$/,
-                /^\d+/,
-                /(secret|truth|nobody|everyone|always|never|most people)/i
+            // HOOK DETECTION - First line is CRITICAL (improved detection)
+            const firstLine = text.split('\n')[0].trim();
+            const strongHookPatterns = [
+                /^(i built|i made|i spent|i lost|i earned|just launched|breaking|unpopular opinion|hot take|stop doing|here's why|the truth about)/i,
+                /^(ever wonder|what if|how I|why most|the \d+)/i,
+                /^\d+\s*(things|ways|tips|lessons|mistakes)/i
             ];
-            const hasHook = hookPatterns.some(p => p.test(firstLine)) || firstLine.length < 60;
-            signals.push({ positive: hasHook, text: hasHook ? 'Strong hook' : 'No hook', weight: 15 });
+            const hasStrongHook = strongHookPatterns.some(p => p.test(firstLine));
+            const hasWeakHook = firstLine.endsWith('?') || firstLine.length < 50;
 
-            // Question detection
-            const hasQuestion = text.includes('?');
-            signals.push({ positive: hasQuestion, text: hasQuestion ? 'Asks question' : 'No question', weight: 20 });
-
-            // Formatting
-            const lineCount = text.split('\n').filter(l => l.trim()).length;
-            const hasFormatting = lineCount >= 3 || text.length < 150;
-            signals.push({ positive: hasFormatting, text: hasFormatting ? 'Good formatting' : 'Wall of text', weight: 10 });
-
-            // Data/specifics
-            const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
-            const dataMatch = text.match(/\$[\d,]+[kKmM]?|\d+[%]|\d{1,3}[,]\d{3}/);
-            signals.push({ positive: hasData, text: hasData ? `Has data (${dataMatch ? dataMatch[0] : 'numbers'})` : 'No specific data', weight: 12 });
-
-            // Controversy
-            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie)/i.test(text);
-            signals.push({ positive: hasControversy, text: hasControversy ? 'Takes a stance' : 'No strong opinion', weight: 8 });
-
-            // CTA
-            const hasCTA = /(follow|share|repost|save this|bookmark|try it|check|link|comment|reply|thoughts\??|what do you think|agree\?)/i.test(text);
-            signals.push({ positive: hasCTA, text: hasCTA ? 'Clear CTA' : 'No CTA', weight: 10 });
-
-            // Thread
-            const hasThread = text.includes('🧵') || lowerText.includes('thread') || /\b1[\.\/]/m.test(text);
-            if (hasThread) signals.push({ positive: true, text: 'Thread format', weight: 8 });
-
-            // Lists
-            const hasList = /^\s*[\d\-•]/m.test(text);
-            if (hasList) signals.push({ positive: true, text: 'Structured list', weight: 6 });
-
-            // Emoji
-            const emojiCount = (text.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
-            if (emojiCount >= 1 && emojiCount <= 5) {
-                signals.push({ positive: true, text: 'Good emoji use', weight: 4 });
+            if (hasStrongHook) {
+                signals.push({ positive: true, text: 'Strong hook (first line grabs attention)', weight: 18 });
+            } else if (hasWeakHook) {
+                signals.push({ positive: true, text: 'Decent hook', weight: 8 });
+            } else {
+                signals.push({ positive: false, text: 'Weak hook (doesn\'t grab attention)', weight: -5 });
             }
 
-            // Negatives
-            const hasLink = /(https?:\/\/|www\.|\.com\/|\.xyz\/|\.io\/)/i.test(text);
-            if (hasLink) signals.push({ positive: false, text: 'Contains link (-15)', weight: -15 });
+            // QUESTION DETECTION - 27x weight in the algorithm!
+            const questionCount = (text.match(/\?/g) || []).length;
+            if (questionCount >= 1) {
+                signals.push({ positive: true, text: `Asks question (${questionCount}x = engagement driver)`, weight: 15 });
+            } else {
+                signals.push({ positive: false, text: 'No question (missing 27x engagement boost)', weight: -8 });
+            }
 
+            // FORMATTING - Line breaks matter
+            const lineCount = text.split('\n').filter(l => l.trim()).length;
+            if (lineCount >= 4) {
+                signals.push({ positive: true, text: 'Great formatting (easy to scan)', weight: 12 });
+            } else if (lineCount >= 2) {
+                signals.push({ positive: true, text: 'OK formatting', weight: 5 });
+            } else if (text.length > 150) {
+                signals.push({ positive: false, text: 'Wall of text (hard to read)', weight: -10 });
+            }
+
+            // DATA & SPECIFICS - Numbers build credibility
+            const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
+            const dataMatch = text.match(/\$[\d,]+[kKmM]?|\d+[%]|\d{1,3}[,]\d{3}/);
+            if (hasData) {
+                signals.push({ positive: true, text: `Has data (${dataMatch ? dataMatch[0] : 'numbers'}) = credibility`, weight: 10 });
+            }
+
+            // CONTROVERSY / STRONG OPINION
+            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie|most people don't)/i.test(text);
+            if (hasControversy) {
+                signals.push({ positive: true, text: 'Takes a stance (drives engagement)', weight: 10 });
+            }
+
+            // CTA - Call to action
+            const strongCTA = /(follow for|save this|bookmark|reply below|drop a|what's your|thoughts\?|agree\?)/i.test(text);
+            const weakCTA = /(check|link|try it|comment)/i.test(text);
+            if (strongCTA) {
+                signals.push({ positive: true, text: 'Strong CTA (drives replies)', weight: 12 });
+            } else if (weakCTA) {
+                signals.push({ positive: true, text: 'Has CTA', weight: 5 });
+            } else {
+                signals.push({ positive: false, text: 'No CTA (no engagement prompt)', weight: -5 });
+            }
+
+            // TAGGING - Relevant mentions get attention
+            const hasMentions = /@\w+/.test(text);
+            const relevantMentions = /@(elonmusk|xai|gaborrosenfeld|naval|paulg|sama|pmarca)/i.test(text);
+            if (relevantMentions) {
+                signals.push({ positive: true, text: 'Tags relevant account (visibility boost)', weight: 12 });
+            } else if (hasMentions) {
+                signals.push({ positive: true, text: 'Has @mentions', weight: 4 });
+            }
+
+            // THREAD INDICATOR
+            const hasThread = text.includes('🧵') || lowerText.includes('thread') || /\b1[\.\/]\s/m.test(text);
+            if (hasThread) {
+                signals.push({ positive: true, text: 'Thread format 🧵 (higher dwell time)', weight: 10 });
+            }
+
+            // LISTS / STRUCTURE
+            const hasList = /^\s*[\d\-•]\s/m.test(text);
+            if (hasList) {
+                signals.push({ positive: true, text: 'Structured list (scannable)', weight: 6 });
+            }
+
+            // EMOJI (1-3 is optimal)
+            const emojiCount = (text.match(/[\u{1F300}-\u{1F9FF}]/gu) || []).length;
+            if (emojiCount >= 1 && emojiCount <= 3) {
+                signals.push({ positive: true, text: 'Good emoji use', weight: 4 });
+            } else if (emojiCount > 5) {
+                signals.push({ positive: false, text: 'Too many emojis (looks spammy)', weight: -5 });
+            }
+
+            // === NEGATIVE SIGNALS (penalties) ===
+
+            // LINK PENALTY - This is HUGE (X suppresses links -90% reach)
+            const hasLink = /(https?:\/\/|www\.|\.com\/|\.xyz\/|\.io\/|\.github\.)/i.test(text);
+            const hasLinkInBioRef = /(link in bio|link in reply|link below|👇)/i.test(text);
+            if (hasLink) {
+                signals.push({ positive: false, text: '⚠️ LINK IN POST (-40) - Major reach penalty!', weight: -40 });
+                if (!hasLinkInBioRef) {
+                    signals.push({ positive: false, text: 'Tip: Say "link in reply 👇" instead', weight: 0 });
+                }
+            }
+
+            // HASHTAG OVERLOAD
             const hashtagCount = (text.match(/#\w+/g) || []).length;
-            if (hashtagCount > 2) signals.push({ positive: false, text: `Too many hashtags (${hashtagCount})`, weight: -8 });
+            if (hashtagCount > 3) {
+                signals.push({ positive: false, text: `Too many hashtags (${hashtagCount}) - looks spammy`, weight: -12 });
+            } else if (hashtagCount > 1) {
+                signals.push({ positive: false, text: `${hashtagCount} hashtags (1 max is optimal)`, weight: -3 });
+            }
 
-            if (text.length < 30) signals.push({ positive: false, text: 'Too short', weight: -10 });
-            if (text.length > 280) signals.push({ positive: false, text: 'Over 280 chars', weight: -5 });
+            // LENGTH ISSUES
+            if (text.length < 50) {
+                signals.push({ positive: false, text: 'Too short (lacks substance)', weight: -15 });
+            }
+            if (text.length > 280) {
+                signals.push({ positive: false, text: 'Over 280 chars (thread or trim)', weight: -5 });
+            }
+
+            // GENERIC PHRASES (low engagement patterns)
+            const genericPhrases = /(check it out|let me know|link in bio|just launched|really proud|excited to share|happy to announce)/i.test(text);
+            if (genericPhrases) {
+                signals.push({ positive: false, text: 'Generic phrase (overused, low engagement)', weight: -8 });
+            }
 
             return signals;
         }
 
         function calculateScore(signals) {
-            let score = 50;
-            signals.forEach(s => score += s.weight * (s.positive ? 1 : 1));
+            // Base score of 35 - you need to earn points
+            let score = 35;
+
+            signals.forEach(s => {
+                if (s.positive) {
+                    score += s.weight;
+                } else {
+                    score += s.weight; // weights are already negative
+                }
+            });
+
+            // Clamp between 0-100
             return Math.max(0, Math.min(100, Math.round(score)));
         }
 
