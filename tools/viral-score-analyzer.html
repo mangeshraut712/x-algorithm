@@ -974,8 +974,8 @@ Here's what I learned..." oninput="updateCharCount()"></textarea>
         }
 
         function calculateScore(signals) {
-            // Base score of 35 - you need to earn points
-            let score = 35;
+            // Base score of 45 - you need to earn points, but not start too low
+            let score = 45;
 
             signals.forEach(s => {
                 if (s.positive) {
