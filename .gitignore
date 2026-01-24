@@ -1,1 +1,21 @@
+# Python
 __pycache__/
+*.pyc
+
+# Rust
+target/
+*.rs.bk
+Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local

@@ -73,6 +73,10 @@ fn test_config_defaults() {
     
     let config = Config::default();
     
-    assert!(config.caching.enabled);
+    // Caching is disabled by default for safety
+    assert!(!config.caching.enabled);
+    // Safety filters are enabled by default
     assert!(config.safety.enable_nsfw_filter);
+    assert!(config.safety.enable_spam_filter);
 }
+

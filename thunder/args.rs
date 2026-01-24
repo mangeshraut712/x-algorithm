@@ -30,11 +30,11 @@ pub struct Args {
     #[arg(long, default_value = "false")]
     pub enable_profiling: bool,
 
-    /// Number of Kafka consumer threads
-    #[arg(long, default_value = "4")]
-    pub kafka_num_threads: usize,
+    /// Maximum result limit for queries
+    #[arg(long, default_value = "100")]
+    pub result_limit: usize,
 
-    /// Whether to serve requests (vs just consume Kafka)
+    /// Whether to serve requests
     #[arg(long, default_value = "true")]
     pub is_serving: bool,
 }

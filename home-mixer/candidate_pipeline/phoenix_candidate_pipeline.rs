@@ -5,7 +5,7 @@
 use crate::candidate_pipeline::candidate::PostCandidate;
 use crate::candidate_pipeline::query::ScoredPostsQuery;
 use crate::params;
-use candidate_pipeline::candidate_pipeline::{CandidatePipeline, PipelineResult};
+use candidate_pipeline::candidate_pipeline::CandidatePipeline;
 use candidate_pipeline::filter::Filter;
 use candidate_pipeline::hydrator::Hydrator;
 use candidate_pipeline::query_hydrator::QueryHydrator;

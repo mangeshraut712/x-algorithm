@@ -116,10 +116,13 @@ impl UserClusteringService {
             // Find nearest cluster centroid
             let cluster_id = self.find_nearest_cluster(&user_feature).await;
             
-            // Create profile from features
+            // Save user_id before moving user_feature
+            let user_id = user_feature.user_id;
+            
+            // Create profile from features (consumes user_feature)
             let profile = self.features_to_profile(user_feature, cluster_id);
             
-            new_clusters.insert(user_feature.user_id, profile);
+            new_clusters.insert(user_id, profile);
         }
         
         // Update cluster assignments
