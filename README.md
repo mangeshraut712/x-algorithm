@@ -21,15 +21,17 @@
 - 🎨 **Complete X Platform Redesign** - All pages now match X's exact interface
 - 🚀 **Post Analyzer** - Analyze posts with viral scoring and AI optimization
 - 📊 **Feed Simulator** - See how posts are ranked in real-time
+- 🔥 **Engagement Heatmap** - NEW! Visualize engagement impact with heatmaps
 - ⏰ **Posting Time Optimizer** - Find the best time to post with heatmaps
 - 🎯 **SimClusters Explorer** - Visual niche/topic clustering
 - ⚖️ **Updated Weights** - Bookmark (4×), DM Share (2×), Block (-150×)
+- 📖 **API Documentation** - Complete API reference for services
 
 ---
 
 ## 🎯 What This Is
 
-This repository contains a **reference implementation** of the recommendation algorithm that powers X's (formerly Twitter) "For You" timeline, plus **7 interactive tools** to help you understand and optimize for it.
+This repository contains a **reference implementation** of the recommendation algorithm that powers X's (formerly Twitter) "For You" timeline, plus **8 interactive tools** to help you understand and optimize for it.
 
 ### What You'll Learn
 
@@ -70,10 +72,12 @@ The algorithm predicts engagement probabilities and multiplies them by these wei
 |------|-------------|--------|
 | 🚀 **Post Analyzer** | Analyze posts, get viral score, optimize content | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/viral-score-analyzer.html) |
 | 📊 **Feed Simulator** | See how the algorithm ranks competing posts | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/feed-simulator.html) |
+| 🔥 **Engagement Heatmap** | Visualize engagement impact with interactive heatmaps | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/engagement-heatmap.html) |
 | ⏰ **Posting Time Optimizer** | Find optimal posting times with heatmaps | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/posting-time-optimizer.html) |
 | 🧮 **Score Calculator** | Calculate scores from engagement probabilities | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/score-calculator.html) |
 | 🔄 **Pipeline Visualization** | Explore the 6-stage ranking pipeline | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/pipeline-visualization.html) |
 | 🎯 **SimClusters Explorer** | Understand topic clustering and niche strategy | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/simclusters-explorer.html) |
+| 📝 **Post Analyzer** | Detailed content analysis | [Open →](https://mangeshraut712.github.io/x-algorithm/tools/post-analyzer.html) |
 
 ---
 
@@ -115,8 +119,9 @@ x-algorithm/
 ├── 📁 docs/
 │   ├── ARCHITECTURE.md        # System architecture deep dive
 │   ├── POSTING_STRATEGY.md    # Content optimization guide
-│   └── CONTRIBUTING.md        # How to contribute
+│   └── API_REFERENCE.md       # HTTP API documentation
 │
+├── CONTRIBUTING.md            # Contribution guidelines
 └── index.html                 # Landing page (X-style design)
 ```
 
@@ -239,7 +244,8 @@ Based on the actual algorithm code:
 |----------|-------------|
 | [🏗️ Architecture](./docs/ARCHITECTURE.md) | Deep dive into system design |
 | [🎯 Posting Strategy](./docs/POSTING_STRATEGY.md) | How to optimize for the algorithm |
-| [🤝 Contributing](./docs/CONTRIBUTING.md) | How to contribute to this project |
+| [📡 API Reference](./docs/API_REFERENCE.md) | HTTP API documentation |
+| [🤝 Contributing](./CONTRIBUTING.md) | How to contribute to this project |
 
 ---
 

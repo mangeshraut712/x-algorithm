@@ -215,6 +215,7 @@ pub mod scored_posts_service_server {
     }
 
     #[derive(Clone)]
+    #[allow(dead_code)]
     pub struct ScoredPostsServiceServer<T: ScoredPostsService> {
         inner: std::sync::Arc<T>,
     }

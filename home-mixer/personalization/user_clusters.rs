@@ -70,7 +70,8 @@ pub struct UserClusteringService {
     /// Cluster assignments: user_id -> ClusterProfile
     clusters: Arc<RwLock<HashMap<u64, ClusterProfile>>>,
     
-    /// Pre-computed cluster centroids
+    /// Pre-computed cluster centroids (for future K-means implementation)
+    #[allow(dead_code)]
     cluster_centroids: Arc<RwLock<Vec<ClusterProfile>>>,
     
     /// Number of clusters (K in K-means)

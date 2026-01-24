@@ -63,3 +63,7 @@ proptest = "1.4"
 
 [features]
 default = []
+
+[[bench]]
+name = "scoring_benchmark"
+harness = false
