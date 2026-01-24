@@ -10,7 +10,7 @@ use std::time::Instant;
 // CONFIGURATION
 // ============================================================
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct Config {
     pub caching: CachingConfig,
     pub batching: BatchingConfig,
@@ -56,7 +56,7 @@ pub struct SafetyConfig {
     pub diversity_boost_multiplier: f64,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct FeatureFlags {
     pub caching_rollout_percent: u8,
     pub batching_rollout_percent: u8,
@@ -68,19 +68,6 @@ pub struct MetricsConfig {
     pub enabled: bool,
     pub port: u16,
     pub enable_tracing: bool,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            caching: CachingConfig::default(),
-            batching: BatchingConfig::default(),
-            personalization: PersonalizationConfig::default(),
-            safety: SafetyConfig::default(),
-            features: FeatureFlags::default(),
-            metrics: MetricsConfig::default(),
-        }
-    }
 }
 
 impl Default for CachingConfig {
@@ -127,16 +114,6 @@ impl Default for SafetyConfig {
             enable_engagement_bait_filter: true,
             enable_diversity_boost: false,
             diversity_boost_multiplier: 1.3,
-        }
-    }
-}
-
-impl Default for FeatureFlags {
-    fn default() -> Self {
-        Self {
-            caching_rollout_percent: 0,
-            batching_rollout_percent: 0,
-            personalization_rollout_percent: 0,
         }
     }
 }

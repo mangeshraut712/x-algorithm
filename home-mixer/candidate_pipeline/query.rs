@@ -25,6 +25,7 @@ pub struct ScoredPostsQuery {
 }
 
 impl ScoredPostsQuery {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         user_id: i64,
         client_app_id: i32,
