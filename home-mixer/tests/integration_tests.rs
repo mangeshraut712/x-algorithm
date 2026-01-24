@@ -8,7 +8,6 @@ use home_mixer::candidate_pipeline::{
 };
 use home_mixer::scorers::weighted_scorer::WeightedScorer;
 use candidate_pipeline::scorer::Scorer;
-use std::sync::Arc;
 
 /// Test that the weighted scorer produces non-zero scores
 #[tokio::test]
