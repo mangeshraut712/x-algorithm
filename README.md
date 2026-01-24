@@ -4,6 +4,14 @@ This repository contains the core recommendation system powering the "For You" f
 
 > **Note:** The transformer implementation is ported from the [Grok-1 open source release](https://github.com/xai-org/grok-1) by xAI, adapted for recommendation system use cases.
 
+## ✨ New: Interactive Algorithm Visualizer
+Explore the inner workings of the X Algorithm with our premium educational tool.
+- [**Launch Visualizer**](viz/index.html) (Open in local browser)
+- **Interactive Pipeline Map**: Trace the journey of a post from Sourcing to Selection.
+- **Transfomer Attention Viz**: Understand "Candidate Isolation" with a live attention matrix.
+- **Ranking Simulator**: Live engagement weight experimental sandbox.
+
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -320,6 +328,13 @@ The `candidate-pipeline` crate provides a flexible framework for building recomm
 
 ---
 
+## 🤝 Contributing & Community
+We welcome community contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+- Improving the **JAX/Python** ranking models.
+- Building community **Rust mocks** for private dependencies.
+- Enhancing the **Interactive Visualizer**.
+
 ## License
 
 This project is licensed under the Apache License 2.0. See [LICENSE](LICENSE) for details.
+

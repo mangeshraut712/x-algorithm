@@ -145,7 +145,10 @@ class Linear(hk.Linear):
         output_size = self.output_size
 
         w = hk.get_parameter(
-            "w", [input_size, output_size], jnp.float32, init=hk.initializers.Constant(0)
+            "w",
+            [input_size, output_size],
+            jnp.float32,
+            init=hk.initializers.VarianceScaling(1.0, mode="fan_out"),
         )
 
         out = jnp.dot(inputs, w.astype(fprop_dtype))

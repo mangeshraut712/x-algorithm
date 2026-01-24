@@ -32,7 +32,8 @@ ignore = [
 ]
 select = ["ISC001"]
 
-[dependency-groups]
-dev = [
-    "pytest",
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:haiku.*",
+    "ignore::DeprecationWarning:jax.*",
 ]
