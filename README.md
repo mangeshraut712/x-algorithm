@@ -35,6 +35,8 @@ Explore the inner workings of the X Algorithm with our premium educational tool.
 - 🎯 **SimClusters Explorer** - Visual niche/topic clustering
 - ⚖️ **Updated Weights** - Bookmark (4×), DM Share (2×), Block (-150×)
 - 📖 **API Documentation** - Complete API reference for services
+- ⚡ **Antigravity Optimization Suite** - NEW! JAX-based model integrity and performance validator
+
 
 ---
 
@@ -48,6 +50,18 @@ This repository contains a **reference implementation** of the recommendation al
 - **How engagement** (likes, retweets, replies) is calculated
 - **The multi-stage pipeline** from candidate sourcing to final ranking
 - **The "Candidate Isolation" technique** in the Grok-based transformer
+- **Automated model validation** using the Antigravity Suite
+
+---
+
+## ⚡ Antigravity Optimization Suite
+We have added a custom performance and integrity validator for the Phoenix ML models.
+```bash
+cd phoenix
+uv run antigravity_validator.py
+```
+This tool verifies parameter health (NaN checks), JIT compilation status, and inference latency on your local hardware.
+
 
 ---
 
