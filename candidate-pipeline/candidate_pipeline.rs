@@ -107,7 +107,7 @@ where
             match result {
                 Ok(hydrated) => {
                     hydrator.update(&mut hydrated_query, hydrated);
-                }
+                },
                 Err(err) => {
                     error!(
                         "request_id={} stage={:?} component={} failed: {}",
@@ -116,7 +116,7 @@ where
                         hydrator.name(),
                         err
                     );
-                }
+                },
             }
         }
         hydrated_query
@@ -141,7 +141,7 @@ where
                         candidates.len()
                     );
                     collected.append(&mut candidates);
-                }
+                },
                 Err(err) => {
                     error!(
                         "request_id={} stage={:?} component={} failed: {}",
@@ -150,7 +150,7 @@ where
                         source.name(),
                         err
                     );
-                }
+                },
             }
         }
         collected
@@ -201,7 +201,7 @@ where
                             hydrated.len()
                         );
                     }
-                }
+                },
                 Err(err) => {
                     error!(
                         "request_id={} stage={:?} component={} failed: {}",
@@ -210,7 +210,7 @@ where
                         hydrator.name(),
                         err
                     );
-                }
+                },
             }
         }
         candidates
@@ -249,7 +249,7 @@ where
                 Ok(result) => {
                     candidates = result.kept;
                     all_removed.extend(result.removed);
-                }
+                },
                 Err(err) => {
                     error!(
                         "request_id={} stage={:?} component={} failed: {}",
@@ -259,7 +259,7 @@ where
                         err
                     );
                     candidates = backup;
-                }
+                },
             }
         }
         info!(
@@ -291,7 +291,7 @@ where
                             scored.len()
                         );
                     }
-                }
+                },
                 Err(err) => {
                     error!(
                         "request_id={} stage={:?} component={} failed: {}",
@@ -300,7 +300,7 @@ where
                         scorer.name(),
                         err
                     );
-                }
+                },
             }
         }
         candidates

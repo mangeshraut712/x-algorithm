@@ -21,7 +21,7 @@ where
     }
 
     /// Filter candidates by evaluating each against some criteria.
-    /// Returns a FilterResult containing kept candidates (which continue to the next stage)
+    /// Returns a `FilterResult` containing kept candidates (which continue to the next stage)
     /// and removed candidates (which are excluded from further processing).
     async fn filter(&self, query: &Q, candidates: Vec<C>) -> Result<FilterResult<C>, String>;
 
