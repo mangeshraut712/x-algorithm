@@ -11,37 +11,76 @@ version = "1.0.0"
 edition = "2021"
 authors = ["xAI"]
 license = "Apache-2.0"
+repository = "https://github.com/mangeshraut712/x-algorithm"
+description = "X's For You Timeline Ranking Algorithm"
 
 [workspace.dependencies]
-# Common dependencies - using latest secure versions
-anyhow = "1.0.79"
+# Core async runtime
+tokio = { version = "1.36", features = ["full", "parking_lot"] }
 async-trait = "0.1.77"
-chrono = { version = "0.4.33", features = ["serde"] }
 futures = "0.3.30"
-itertools = "0.12.1"
-log = "0.4.20"
+
+# Error handling
+anyhow = "1.0.79"
+
+# Serialization
 serde = { version = "1.0.196", features = ["derive"] }
 serde_json = "1.0.113"
-tokio = { version = "1.36", features = ["full"] }
+
+# gRPC
 tonic = { version = "0.11", features = ["gzip"] }
 prost = "0.12.3"
 
+# Time
+chrono = { version = "0.4.33", features = ["serde"] }
+
+# Utilities
+itertools = "0.12.1"
+log = "0.4.20"
+
+# Performance: Use parking_lot for faster synchronization
+parking_lot = "0.12"
+
+# ======================================
+# PERFORMANCE PROFILES
+# ======================================
+
 [profile.release]
-# Optimization level
+# Maximum optimization
 opt-level = 3
-# Link-time optimization for better performance
-lto = true
-# Codegen units (1 = best optimization, slower compile)
+# Link-time optimization - "fat" for best performance
+lto = "fat"
+# Single codegen unit for maximum optimization
 codegen-units = 1
-# Strip symbols for smaller binary
+# Strip debug info for smaller binary
 strip = true
-# Overflow checks in release (safety vs speed tradeoff)
+# No overflow checks in release
 overflow-checks = false
+# Enable frame pointers for profiling
+debug = false
+# Panic = abort for smaller binary and faster panic handling
+panic = "abort"
+
+[profile.release-with-debug]
+inherits = "release"
+debug = true
+strip = false
 
 [profile.dev]
 # Faster compile times in development
 opt-level = 0
+# Incremental compilation
+incremental = true
+# Keep debug info
+debug = true
 
 [profile.test]
 # Optimize tests for faster execution
 opt-level = 2
+# Keep debug for test failures
+debug = true
+
+[profile.bench]
+# Benchmarks need full optimization
+inherits = "release"
+debug = true

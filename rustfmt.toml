@@ -1,0 +1,35 @@
+# Rust Formatting Configuration
+# Run: cargo fmt --all
+
+# Use nightly features for better formatting
+edition = "2021"
+
+# Line width
+max_width = 100
+
+# Indentation
+tab_spaces = 4
+hard_tabs = false
+
+# Imports
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+reorder_imports = true
+reorder_modules = true
+
+# Function signatures
+fn_single_line = false
+fn_args_layout = "Tall"
+
+# Comments
+wrap_comments = true
+comment_width = 80
+normalize_comments = true
+
+# Misc
+use_small_heuristics = "Default"
+trailing_comma = "Vertical"
+match_block_trailing_comma = true
+trailing_semicolon = true
+use_field_init_shorthand = true
+force_explicit_abi = true
