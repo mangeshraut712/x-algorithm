@@ -1,5 +1,4 @@
 use crate::util;
-use std::any::type_name_of_val;
 use tonic::async_trait;
 
 /// Scorers update candidate fields (like a score field) and run sequentially
@@ -34,6 +33,6 @@ where
     }
 
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }

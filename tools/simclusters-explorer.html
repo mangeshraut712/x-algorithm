@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimClusters Explorer | X Algorithm</title>
+    <meta name="description" content="Understand how topic clustering affects your content distribution on X.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
+            --yellow: #ffd400;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        /* Cluster Visualization */
+        .cluster-viz {
+            position: relative;
+            height: 400px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .cluster-node {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .cluster-node:hover {
+            transform: scale(1.1);
+            border-color: var(--text);
+        }
+
+        .cluster-node.selected {
+            border-color: var(--blue);
+            box-shadow: 0 0 20px rgba(29, 155, 240, 0.5);
+        }
+
+        .cluster-label {
+            position: absolute;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        /* Cluster List */
+        .cluster-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cluster-tag {
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 9999px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .cluster-tag:hover {
+            background: var(--bg-secondary);
+        }
+
+        .cluster-tag.selected {
+            border-color: var(--blue);
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        /* Affinity Bar */
+        .affinity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .affinity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .affinity-label {
+            width: 100px;
+            font-size: 0.9rem;
+        }
+
+        .affinity-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .affinity-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+        }
+
+        .affinity-fill.high {
+            background: linear-gradient(90deg, var(--green), var(--blue));
+        }
+
+        .affinity-fill.medium {
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+        }
+
+        .affinity-fill.low {
+            background: linear-gradient(90deg, var(--orange), var(--pink));
+        }
+
+        .affinity-value {
+            width: 50px;
+            text-align: right;
+            font-weight: 700;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .info-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+        }
+
+        .info-title {
+            font-weight: 700;
+        }
+
+        .info-subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .info-content {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Impact Grid */
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .impact-item {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .impact-emoji {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .impact-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .impact-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Tips */
+        .tip-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+        }
+
+        .tip-icon {
+            font-size: 1.2rem;
+        }
+
+        .tip-text {
+            font-size: 0.9rem;
+        }
+
+        footer {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🎯 SimClusters Explorer</h1>
+        </header>
+
+        <div class="section">
+            <div class="section-title">🌐 What are SimClusters?</div>
+            <div class="info-card">
+                <div class="info-header">
+                    <div class="info-icon">🧠</div>
+                    <div>
+                        <div class="info-title">Topic-Based User Embeddings</div>
+                        <div class="info-subtitle">How X understands your interests</div>
+                    </div>
+                </div>
+                <div class="info-content">
+                    SimClusters groups users and content into ~145,000 topic clusters. Your posts are distributed to
+                    users who share similar cluster affinities. <strong>Staying in your niche = better
+                        distribution.</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">🎨 Cluster Visualization</div>
+            <div class="section-desc">Click a cluster to explore. Size = audience reach.</div>
+            <div class="cluster-viz" id="clusterViz">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📊 Select Your Niche</div>
+            <div class="cluster-list" id="clusterList">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">📈 Your Cluster Affinity</div>
+            <div class="section-desc">How your content would be distributed</div>
+            <div class="affinity-list" id="affinityList">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">⚡ Distribution Impact</div>
+            <div class="impact-grid">
+                <div class="impact-item">
+                    <div class="impact-emoji">✅</div>
+                    <div class="impact-text">Stay in Niche</div>
+                    <div class="impact-subtext">Full distribution to matched users</div>
+                </div>
+                <div class="impact-item">
+                    <div class="impact-emoji">❌</div>
+                    <div class="impact-text">Topic Switch</div>
+                    <div class="impact-subtext">Confuses algorithm, lower reach</div>
+                </div>
+                <div class="impact-item">
+                    <div class="impact-emoji">🎯</div>
+                    <div class="impact-text">Consistent Theme</div>
+                    <div class="impact-subtext">Builds strong cluster affinity</div>
+                </div>
+                <div class="impact-item">
+                    <div class="impact-emoji">🔄</div>
+                    <div class="impact-text">Related Topics</div>
+                    <div class="impact-subtext">OK if clusters overlap</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">💡 SimCluster Strategy Tips</div>
+            <div class="tip-list">
+                <div class="tip-item">
+                    <span class="tip-icon">🎯</span>
+                    <span class="tip-text"><strong>Pick ONE primary niche</strong> and dominate it. Your engaged
+                        audience trains the algorithm.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">🔗</span>
+                    <span class="tip-text"><strong>Related topics are okay</strong> if there's natural cluster overlap
+                        (e.g., AI + Crypto often overlap).</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">⚠️</span>
+                    <span class="tip-text"><strong>Avoid unrelated viral posts</strong>. Going viral in a different
+                        niche can dilute your cluster affinity.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">👥</span>
+                    <span class="tip-text"><strong>Quality followers matter</strong>. Followers in your cluster amplify
+                        your reach within that cluster.</span>
+                </div>
+                <div class="tip-item">
+                    <span class="tip-icon">📊</span>
+                    <span class="tip-text"><strong>Engagement signals train clusters</strong>. Replies and bookmarks
+                        strengthen your cluster positioning.</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const clusters = [
+            { id: 1, name: 'Tech / AI', emoji: '🤖', color: '#1d9bf0', size: 80, x: 50, y: 30 },
+            { id: 2, name: 'Crypto / Web3', emoji: '₿', color: '#ff7a00', size: 70, x: 75, y: 45 },
+            { id: 3, name: 'Startups', emoji: '🚀', color: '#00ba7c', size: 65, x: 30, y: 50 },
+            { id: 4, name: 'Finance', emoji: '💰', color: '#ffd400', size: 60, x: 60, y: 65 },
+            { id: 5, name: 'Politics', emoji: '🏛️', color: '#f91880', size: 75, x: 20, y: 70 },
+            { id: 6, name: 'Sports', emoji: '⚽', color: '#7856ff', size: 70, x: 80, y: 75 },
+            { id: 7, name: 'Entertainment', emoji: '🎬', color: '#ff6b6b', size: 55, x: 45, y: 85 },
+            { id: 8, name: 'Science', emoji: '🔬', color: '#4ecdc4', size: 50, x: 70, y: 25 },
+        ];
+
+        let selectedCluster = clusters[0];
+
+        function renderClusterViz() {
+            const viz = document.getElementById('clusterViz');
+            viz.innerHTML = clusters.map(c => `
+                <div class="cluster-node ${c.id === selectedCluster.id ? 'selected' : ''}"
+                     style="
+                         left: ${c.x}%;
+                         top: ${c.y}%;
+                         width: ${c.size}px;
+                         height: ${c.size}px;
+                         background: ${c.color};
+                         transform: translate(-50%, -50%);
+                         font-size: ${c.size / 2.5}px;
+                     "
+                     onclick="selectCluster(${c.id})"
+                     title="${c.name}">
+                    ${c.emoji}
+                </div>
+            `).join('');
+        }
+
+        function renderClusterList() {
+            const list = document.getElementById('clusterList');
+            list.innerHTML = clusters.map(c => `
+                <div class="cluster-tag ${c.id === selectedCluster.id ? 'selected' : ''}"
+                     onclick="selectCluster(${c.id})"
+                     style="border-color: ${c.id === selectedCluster.id ? c.color : 'transparent'};">
+                    ${c.emoji} ${c.name}
+                </div>
+            `).join('');
+        }
+
+        function renderAffinityList() {
+            const list = document.getElementById('affinityList');
+
+            // Generate affinities based on selected cluster
+            const affinities = clusters.map(c => {
+                let affinity;
+                if (c.id === selectedCluster.id) {
+                    affinity = 85 + Math.random() * 15;
+                } else {
+                    // Related clusters get higher affinity
+                    const distance = Math.abs(c.x - selectedCluster.x) + Math.abs(c.y - selectedCluster.y);
+                    affinity = Math.max(5, 50 - distance / 2 + Math.random() * 20);
+                }
+                return { ...c, affinity: Math.round(affinity) };
+            }).sort((a, b) => b.affinity - a.affinity);
+
+            list.innerHTML = affinities.map(c => {
+                const level = c.affinity > 70 ? 'high' : (c.affinity > 40 ? 'medium' : 'low');
+                return `
+                    <div class="affinity-item">
+                        <span class="affinity-label">${c.emoji} ${c.name}</span>
+                        <div class="affinity-bar">
+                            <div class="affinity-fill ${level}" style="width: ${c.affinity}%;"></div>
+                        </div>
+                        <span class="affinity-value">${c.affinity}%</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectCluster(id) {
+            selectedCluster = clusters.find(c => c.id === id);
+            renderClusterViz();
+            renderClusterList();
+            renderAffinityList();
+        }
+
+        // Initial render
+        renderClusterViz();
+        renderClusterList();
+        renderAffinityList();
+    </script>
+</body>
+
+</html>

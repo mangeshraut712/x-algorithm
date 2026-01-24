@@ -1,78 +1,185 @@
+//! HomeMixer Server
+//!
+//! This is the main entry point for the HomeMixer service.
+//! It provides both HTTP and demonstration endpoints for the algorithm.
+
+use anyhow::Result;
+use axum::{
+    extract::Json,
+    response::IntoResponse,
+    routing::{get, post},
+    Router,
+};
 use clap::Parser;
 use log::info;
-use std::time::Duration;
+use serde::{Deserialize, Serialize};
+use std::net::SocketAddr;
 
-use tonic::codec::CompressionEncoding;
-use tonic::service::RoutesBuilder;
-use tonic_reflection::server::Builder;
-
-use xai_home_mixer_proto as pb;
-use xai_http_server::{CancellationToken, GrpcConfig, HttpServer};
-
-use xai_home_mixer::HomeMixerServer;
-use xai_home_mixer::params;
+use home_mixer::params;
 
 #[derive(Parser, Debug)]
-#[command(about = "HomeMixer gRPC Server")]
+#[command(about = "HomeMixer Server - X's For You Algorithm")]
 struct Args {
-    #[arg(long)]
-    grpc_port: u16,
-    #[arg(long)]
-    metrics_port: u16,
-    #[arg(long)]
-    reload_interval_minutes: u64,
-    #[arg(long)]
-    chunk_size: usize,
+    #[arg(long, default_value = "8080")]
+    port: u16,
 }
 
-#[xai_stats_macro::main(name = "home-mixer")]
+#[derive(Debug, Serialize)]
+struct HealthResponse {
+    status: String,
+    version: String,
+}
+
+#[derive(Debug, Serialize)]
+struct WeightsResponse {
+    reply: f64,
+    profile_click: f64,
+    bookmark: f64,
+    follow_author: f64,
+    quote: f64,
+    dm_share: f64,
+    like: f64,
+    repost: f64,
+    video_view: f64,
+    not_interested: f64,
+    block: f64,
+    mute: f64,
+    report: f64,
+}
+
+#[derive(Debug, Deserialize)]
+struct ScoreRequest {
+    reply_prob: f64,
+    like_prob: f64,
+    repost_prob: f64,
+    profile_click_prob: f64,
+    bookmark_prob: f64,
+    #[serde(default)]
+    video_view_prob: f64,
+    #[serde(default)]
+    has_link: bool,
+}
+
+#[derive(Debug, Serialize)]
+struct ScoreResponse {
+    score: f64,
+    breakdown: ScoreBreakdown,
+    tier: String,
+}
+
+#[derive(Debug, Serialize)]
+struct ScoreBreakdown {
+    reply_contribution: f64,
+    profile_click_contribution: f64,
+    bookmark_contribution: f64,
+    like_contribution: f64,
+    repost_contribution: f64,
+    video_contribution: f64,
+    link_penalty: Option<f64>,
+}
+
+async fn health() -> impl IntoResponse {
+    Json(HealthResponse {
+        status: "ok".to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+    })
+}
+
+async fn get_weights() -> impl IntoResponse {
+    Json(WeightsResponse {
+        reply: params::REPLY_WEIGHT,
+        profile_click: params::PROFILE_CLICK_WEIGHT,
+        bookmark: params::BOOKMARK_WEIGHT,
+        follow_author: params::FOLLOW_AUTHOR_WEIGHT,
+        quote: params::QUOTE_WEIGHT,
+        dm_share: params::SHARE_VIA_DM_WEIGHT,
+        like: params::FAVORITE_WEIGHT,
+        repost: params::RETWEET_WEIGHT,
+        video_view: params::VQV_WEIGHT,
+        not_interested: params::NOT_INTERESTED_WEIGHT,
+        block: params::BLOCK_AUTHOR_WEIGHT,
+        mute: params::MUTE_AUTHOR_WEIGHT,
+        report: params::REPORT_WEIGHT,
+    })
+}
+
+async fn calculate_score(Json(req): Json<ScoreRequest>) -> impl IntoResponse {
+    // Calculate score using weights
+    let reply_contribution = req.reply_prob * params::REPLY_WEIGHT;
+    let profile_click_contribution = req.profile_click_prob * params::PROFILE_CLICK_WEIGHT;
+    let bookmark_contribution = req.bookmark_prob * params::BOOKMARK_WEIGHT;
+    let like_contribution = req.like_prob * params::FAVORITE_WEIGHT;
+    let repost_contribution = req.repost_prob * params::RETWEET_WEIGHT;
+    let video_contribution = req.video_view_prob * params::VQV_WEIGHT;
+
+    let mut score = reply_contribution
+        + profile_click_contribution
+        + bookmark_contribution
+        + like_contribution
+        + repost_contribution
+        + video_contribution;
+
+    // Apply link penalty (approximately 90% reduction)
+    let link_penalty = if req.has_link {
+        let penalty = score * 0.9;
+        score -= penalty;
+        Some(penalty)
+    } else {
+        None
+    };
+
+    // Determine tier
+    let tier = if score >= 30.0 {
+        "VIRAL_POTENTIAL"
+    } else if score >= 15.0 {
+        "GOOD"
+    } else if score >= 5.0 {
+        "AVERAGE"
+    } else {
+        "LOW"
+    }
+    .to_string();
+
+    Json(ScoreResponse {
+        score,
+        breakdown: ScoreBreakdown {
+            reply_contribution,
+            profile_click_contribution,
+            bookmark_contribution,
+            like_contribution,
+            repost_contribution,
+            video_contribution,
+            link_penalty,
+        },
+        tier,
+    })
+}
+
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
+    env_logger::init();
     let args = Args::parse();
-    xai_init_utils::init().log();
-    xai_init_utils::init().rustls();
-    info!(
-        "Starting server with gRPC port: {}, metrics port: {}, reload interval: {} minutes, chunk size: {}",
-        args.grpc_port, args.metrics_port, args.reload_interval_minutes, args.chunk_size,
-    );
 
-    // Create the service implementation
-    let service = HomeMixerServer::new().await;
-    // Keep a reference to stats_receiver before service is moved
-    let reflection_service = Builder::configure()
-        .register_encoded_file_descriptor_set(pb::FILE_DESCRIPTOR_SET)
-        .build_v1()?;
+    info!("Starting HomeMixer server on port {}", args.port);
+    info!("Algorithm weights loaded from params.rs");
+    info!("  Reply weight: {}", params::REPLY_WEIGHT);
+    info!("  Profile click weight: {}", params::PROFILE_CLICK_WEIGHT);
+    info!("  Bookmark weight: {}", params::BOOKMARK_WEIGHT);
+    info!("  Report weight: {}", params::REPORT_WEIGHT);
 
-    let mut grpc_routes = RoutesBuilder::default();
+    // Build router
+    let app = Router::new()
+        .route("/health", get(health))
+        .route("/ready", get(health))
+        .route("/api/weights", get(get_weights))
+        .route("/api/score", post(calculate_score));
 
-    grpc_routes.add_service(
-        pb::scored_posts_service_server::ScoredPostsServiceServer::new(service)
-            .max_decoding_message_size(params::MAX_GRPC_MESSAGE_SIZE)
-            .max_encoding_message_size(params::MAX_GRPC_MESSAGE_SIZE)
-            .accept_compressed(CompressionEncoding::Gzip)
-            .accept_compressed(CompressionEncoding::Zstd)
-            .send_compressed(CompressionEncoding::Gzip)
-            .send_compressed(CompressionEncoding::Zstd),
-    );
+    // Start server
+    let addr: SocketAddr = format!("0.0.0.0:{}", args.port).parse()?;
+    info!("Server listening on {}", addr);
 
-    grpc_routes.add_service(reflection_service);
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, app).await?;
 
-    let grpc_config = GrpcConfig::new(args.grpc_port, grpc_routes.routes());
-
-    let http_router = axum::Router::default();
-
-    let mut server = HttpServer::new(
-        args.metrics_port,
-        http_router,
-        Some(grpc_config),
-        CancellationToken::new(),
-        Duration::from_secs(20),
-    )
-    .await?;
-
-    server.set_readiness(true);
-    info!("Server ready");
-    server.wait_for_termination().await;
-    info!("Server shutdown complete");
     Ok(())
 }

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Visualization | X Algorithm</title>
+    <meta name="description" content="Interactive exploration of every stage in X's recommendation pipeline.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Pipeline Flow */
+        .pipeline {
+            padding: 16px;
+        }
+
+        .pipeline-stage {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .pipeline-stage:hover {
+            border-color: var(--blue);
+        }
+
+        .pipeline-stage.active {
+            border-color: var(--green);
+        }
+
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+        }
+
+        .stage-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .stage-icon.request {
+            background: linear-gradient(135deg, var(--purple), var(--blue));
+        }
+
+        .stage-icon.thunder {
+            background: linear-gradient(135deg, var(--orange), var(--pink));
+        }
+
+        .stage-icon.phoenix {
+            background: linear-gradient(135deg, var(--blue), var(--green));
+        }
+
+        .stage-icon.filter {
+            background: linear-gradient(135deg, var(--pink), var(--orange));
+        }
+
+        .stage-icon.score {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+        }
+
+        .stage-icon.select {
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+        }
+
+        .stage-info {
+            flex: 1;
+        }
+
+        .stage-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .stage-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .stage-arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            transition: transform 0.3s;
+        }
+
+        .pipeline-stage.expanded .stage-arrow {
+            transform: rotate(180deg);
+        }
+
+        .stage-content {
+            display: none;
+            padding: 0 16px 16px;
+        }
+
+        .pipeline-stage.expanded .stage-content {
+            display: block;
+        }
+
+        .stage-details {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+        }
+
+        .detail-value {
+            font-weight: 600;
+        }
+
+        .detail-value.in {
+            color: var(--orange);
+        }
+
+        .detail-value.out {
+            color: var(--green);
+        }
+
+        /* Connector Arrow */
+        .connector {
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+        }
+
+        .connector-line {
+            width: 2px;
+            height: 24px;
+            background: linear-gradient(to bottom, var(--border), var(--blue));
+            position: relative;
+        }
+
+        .connector-line::after {
+            content: '▼';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--blue);
+            font-size: 0.8rem;
+        }
+
+        /* Code Block */
+        .code-block {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--green);
+            overflow-x: auto;
+        }
+
+        /* Stats */
+        .pipeline-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 16px;
+        }
+
+        .stat-item {
+            background: var(--bg-secondary);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--blue);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Legend */
+        .legend {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        footer {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🔄 Pipeline Visualization</h1>
+        </header>
+
+        <!-- Pipeline Stats -->
+        <div class="pipeline-stats">
+            <div class="stat-item">
+                <div class="stat-value">~1500</div>
+                <div class="stat-label">Candidates In</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Pipeline Stages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">~50</div>
+                <div class="stat-label">Posts Out</div>
+            </div>
+        </div>
+
+        <!-- Pipeline Stages -->
+        <div class="pipeline">
+            <!-- Stage 1: Request -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon request">📱</div>
+                    <div class="stage-info">
+                        <div class="stage-title">1. Feed Request</div>
+                        <div class="stage-subtitle">User opens For You tab</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">User ID</span>
+                            <span class="detail-value">Extracted from session</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Features Loaded</span>
+                            <span class="detail-value">Interests, Following, History</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Request Limit</span>
+                            <span class="detail-value">~100 posts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 2: Thunder -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon thunder">⚡</div>
+                    <div class="stage-info">
+                        <div class="stage-title">2. Thunder (In-Network)</div>
+                        <div class="stage-subtitle">Posts from accounts you follow</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Source</span>
+                            <span class="detail-value">Following Timeline</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Candidates</span>
+                            <span class="detail-value in">~500 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Max Age</span>
+                            <span class="detail-value">7 days</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Weight Factor</span>
+                            <span class="detail-value out">1.0× (full weight)</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>thunder/realtime_query.rs
+→ Get recent posts from followed users
+→ Apply freshness filter (7 day max)
+→ Return candidate pool</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 3: Phoenix -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon phoenix">🔥</div>
+                    <div class="stage-info">
+                        <div class="stage-title">3. Phoenix (Out-of-Network)</div>
+                        <div class="stage-subtitle">ML-based content discovery</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Source</span>
+                            <span class="detail-value">SimClusters + Social Graph</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Candidates</span>
+                            <span class="detail-value in">~1000 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Model</span>
+                            <span class="detail-value">Grok Transformer</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Weight Factor</span>
+                            <span class="detail-value out">0.7× (OON discount)</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>phoenix/ranker.py (JAX)
+→ SimClusters user embedding
+→ Grok engagement prediction
+→ Return discovery candidates</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 4: Filtering -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon filter">🚫</div>
+                    <div class="stage-info">
+                        <div class="stage-title">4. Filtering</div>
+                        <div class="stage-subtitle">Remove spam, blocks, duplicates</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Input</span>
+                            <span class="detail-value in">~1500 candidates</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Spam Filtered</span>
+                            <span class="detail-value">~200 removed</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Blocked/Muted</span>
+                            <span class="detail-value">User-specific removal</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Output</span>
+                            <span class="detail-value out">~1200 candidates</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 5: Scoring -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon score">⚖️</div>
+                    <div class="stage-info">
+                        <div class="stage-title">5. Weighted Scoring</div>
+                        <div class="stage-subtitle">Apply algorithm weights</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Reply Weight</span>
+                            <span class="detail-value out">×27.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Profile Click</span>
+                            <span class="detail-value out">×12.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Bookmark</span>
+                            <span class="detail-value out">×4.0</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Report Penalty</span>
+                            <span class="detail-value" style="color: var(--pink);">×-369.0</span>
+                        </div>
+                    </div>
+                    <div class="code-block">
+                        <pre>home-mixer/scorers/weighted_scorer.rs
+Score = Σ (weight × P(action))
++ SIMD optimization
++ Author diversity decay</pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="connector">
+                <div class="connector-line"></div>
+            </div>
+
+            <!-- Stage 6: Selection -->
+            <div class="pipeline-stage" onclick="toggleStage(this)">
+                <div class="stage-header">
+                    <div class="stage-icon select">✅</div>
+                    <div class="stage-info">
+                        <div class="stage-title">6. Selection & Serving</div>
+                        <div class="stage-subtitle">Top K posts to your feed</div>
+                    </div>
+                    <span class="stage-arrow">▼</span>
+                </div>
+                <div class="stage-content">
+                    <div class="stage-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Input</span>
+                            <span class="detail-value in">~1200 scored</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Top K Selection</span>
+                            <span class="detail-value">~100 selected</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Ad Injection</span>
+                            <span class="detail-value">Every 4-5 posts</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Output</span>
+                            <span class="detail-value out">~50 posts (page 1)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-title">Color Key</div>
+            <div class="legend-grid">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--orange);"></div>
+                    <span>Input / Candidates</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--green);"></div>
+                    <span>Output / Weight</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--blue);"></div>
+                    <span>Process / Stage</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--pink);"></div>
+                    <span>Penalty / Removed</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleStage(element) {
+            element.classList.toggle('expanded');
+        }
+    </script>
+</body>
+
+</html>

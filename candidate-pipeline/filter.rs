@@ -1,4 +1,4 @@
-use std::any::{Any, type_name_of_val};
+use std::any::Any;
 use tonic::async_trait;
 
 use crate::util;
@@ -21,12 +21,12 @@ where
     }
 
     /// Filter candidates by evaluating each against some criteria.
-    /// Returns a FilterResult containing kept candidates (which continue to the next stage)
+    /// Returns a `FilterResult` containing kept candidates (which continue to the next stage)
     /// and removed candidates (which are excluded from further processing).
     async fn filter(&self, query: &Q, candidates: Vec<C>) -> Result<FilterResult<C>, String>;
 
     /// Returns a stable name for logging/metrics.
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }

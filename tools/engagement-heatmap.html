@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engagement Heatmap | X Algorithm</title>
+    <meta name="description" content="Visualize how different engagement types affect your post ranking on X">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text-primary: #e7e9ea;
+            --text-secondary: #71767b;
+            --accent: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+            --purple: #7856ff;
+            --yellow: #ffd700;
+            --red: #ff4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        /* Stats Overview */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Heatmap Container */
+        .heatmap-section {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Heatmap Grid */
+        .heatmap-grid {
+            display: grid;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .heatmap-row {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .heatmap-label {
+            width: 100px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: right;
+            padding-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .heatmap-cells {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .heatmap-cell {
+            flex: 1;
+            height: 40px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+
+        .heatmap-header {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            padding-left: 108px;
+        }
+
+        .heatmap-header span {
+            flex: 1;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .legend-gradient {
+            width: 200px;
+            height: 12px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #1a1a2e, #16213e, #0f3460, #1d9bf0, #00ba7c, #ffd700, #ff7a00, #f91880);
+        }
+
+        .legend-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 200px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Engagement Bars */
+        .engagement-bars {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .bar-item {
+            margin-bottom: 16px;
+        }
+
+        .bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .bar-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .bar-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .bar-container {
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.6s ease-out;
+            position: relative;
+        }
+
+        .bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Strategy Cards */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .strategy-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .strategy-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .strategy-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .strategy-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .strategy-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .strategy-impact {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 12px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .impact-high {
+            color: var(--green);
+        }
+
+        .impact-medium {
+            color: var(--orange);
+        }
+
+        .impact-low {
+            color: var(--text-secondary);
+        }
+
+        /* Calculator Section */
+        .calculator {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border);
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .calc-input {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .calc-input label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .calc-input input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: center;
+        }
+
+        .calc-input input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .calc-result {
+            background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-primary));
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border: 2px solid var(--accent);
+        }
+
+        .result-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-tier {
+            margin-top: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stats-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .strategy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .calc-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 500px) {
+            .heatmap-label {
+                width: 60px;
+                font-size: 0.7rem;
+            }
+
+            .heatmap-header {
+                padding-left: 68px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🔥 Engagement Heatmap</h1>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-value">27×</div>
+                <div class="stat-label">Max Weight (Reply)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">-369×</div>
+                <div class="stat-label">Min Weight (Report)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">6h</div>
+                <div class="stat-label">Freshness Half-Life</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">~90%</div>
+                <div class="stat-label">Link Penalty</div>
+            </div>
+        </div>
+
+        <!-- Engagement Value Heatmap -->
+        <section class="heatmap-section">
+            <h2 class="section-title">📊 Engagement Value Matrix</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.9rem;">
+                How different engagement volumes affect your ranking score. Hover for exact values.
+            </p>
+
+            <div class="heatmap-header">
+                <span>1</span>
+                <span>5</span>
+                <span>10</span>
+                <span>25</span>
+                <span>50</span>
+                <span>100</span>
+            </div>
+
+            <div class="heatmap-grid" id="heatmap">
+                <!-- Generated by JavaScript -->
+            </div>
+
+            <div class="legend">
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">Low Impact</span>
+                <div class="legend-gradient"></div>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">High Impact</span>
+            </div>
+        </section>
+
+        <!-- Engagement Bars -->
+        <section class="engagement-bars">
+            <h2 class="section-title">⚖️ Weight Distribution</h2>
+            <div id="engagementBars">
+                <!-- Generated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Strategy Cards -->
+        <section>
+            <h2 class="section-title" style="margin-bottom: 16px;">🎯 Optimization Strategies</h2>
+            <div class="strategy-grid">
+                <div class="strategy-card">
+                    <div class="strategy-icon">💬</div>
+                    <div class="strategy-title">Maximize Replies</div>
+                    <div class="strategy-desc">
+                        Replies have 27× weight - the highest positive signal. End posts with questions, ask for
+                        opinions, create debate.
+                    </div>
+                    <span class="strategy-impact impact-high">+27× per reply</span>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-icon">👤</div>
+                    <div class="strategy-title">Drive Profile Visits</div>
+                    <div class="strategy-desc">
+                        Profile clicks (12×) show deep interest. Tease expertise, mention credentials, hint at more
+                        content.
+                    </div>
+                    <span class="strategy-impact impact-high">+12× per click</span>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-icon">🔖</div>
+                    <div class="strategy-title">Encourage Saves</div>
+                    <div class="strategy-desc">
+                        Bookmarks (4×) indicate high-value content. Create reference material, tips, lists people want
+                        to save.
+                    </div>
+                    <span class="strategy-impact impact-medium">+4× per save</span>
+                </div>
+
+                <div class="strategy-card">
+                    <div class="strategy-icon">🔗</div>
+                    <div class="strategy-title">Avoid External Links</div>
+                    <div class="strategy-desc">
+                        Links reduce reach by ~90%. Post content natively, put links in replies, or use images with
+                        text.
+                    </div>
+                    <span class="strategy-impact impact-high">-90% reach</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Score Calculator -->
+        <section class="calculator">
+            <h2 class="section-title">🧮 Quick Score Calculator</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                Enter expected engagement to calculate your approximate ranking score.
+            </p>
+
+            <div class="calc-grid">
+                <div class="calc-input">
+                    <label>💬 Replies</label>
+                    <input type="number" id="replies" value="5" min="0" oninput="calculateScore()">
+                </div>
+                <div class="calc-input">
+                    <label>👤 Profile Clicks</label>
+                    <input type="number" id="profileClicks" value="10" min="0" oninput="calculateScore()">
+                </div>
+                <div class="calc-input">
+                    <label>🔖 Bookmarks</label>
+                    <input type="number" id="bookmarks" value="3" min="0" oninput="calculateScore()">
+                </div>
+                <div class="calc-input">
+                    <label>❤️ Likes</label>
+                    <input type="number" id="likes" value="50" min="0" oninput="calculateScore()">
+                </div>
+                <div class="calc-input">
+                    <label>🔁 Reposts</label>
+                    <input type="number" id="reposts" value="5" min="0" oninput="calculateScore()">
+                </div>
+                <div class="calc-input">
+                    <label>💬 Quote Tweets</label>
+                    <input type="number" id="quotes" value="2" min="0" oninput="calculateScore()">
+                </div>
+            </div>
+
+            <div class="calc-result">
+                <div class="result-label">Estimated Ranking Score</div>
+                <div class="result-value" id="scoreValue">0</div>
+                <div class="result-tier" id="scoreTier">Calculating...</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Algorithm weights from params.rs
+        const WEIGHTS = {
+            reply: 27.0,
+            profileClick: 12.0,
+            bookmark: 4.0,
+            followAuthor: 4.0,
+            quote: 2.0,
+            dmShare: 2.0,
+            copyLink: 1.5,
+            like: 1.0,
+            repost: 1.0,
+            dwell: 0.1,
+            videoView: 0.3
+        };
+
+        const NEGATIVE_WEIGHTS = {
+            notInterested: -74.0,
+            block: -150.0,
+            mute: -50.0,
+            report: -369.0
+        };
+
+        // Generate Heatmap
+        function generateHeatmap() {
+            const container = document.getElementById('heatmap');
+            const engagementTypes = [
+                { name: 'Reply', weight: WEIGHTS.reply, emoji: '💬' },
+                { name: 'Profile Click', weight: WEIGHTS.profileClick, emoji: '👤' },
+                { name: 'Bookmark', weight: WEIGHTS.bookmark, emoji: '🔖' },
+                { name: 'Quote', weight: WEIGHTS.quote, emoji: '💬' },
+                { name: 'Like', weight: WEIGHTS.like, emoji: '❤️' },
+                { name: 'Repost', weight: WEIGHTS.repost, emoji: '🔁' }
+            ];
+            const counts = [1, 5, 10, 25, 50, 100];
+
+            // Calculate max value for normalization
+            const maxValue = Math.max(...engagementTypes.map(e => e.weight)) * Math.max(...counts);
+
+            engagementTypes.forEach(type => {
+                const row = document.createElement('div');
+                row.className = 'heatmap-row';
+
+                const label = document.createElement('div');
+                label.className = 'heatmap-label';
+                label.textContent = type.name;
+                row.appendChild(label);
+
+                const cells = document.createElement('div');
+                cells.className = 'heatmap-cells';
+
+                counts.forEach(count => {
+                    const value = type.weight * count;
+                    const intensity = value / maxValue;
+                    const color = getHeatmapColor(intensity);
+
+                    const cell = document.createElement('div');
+                    cell.className = 'heatmap-cell';
+                    cell.style.background = color;
+                    cell.style.color = intensity > 0.3 ? 'white' : 'var(--text-secondary)';
+                    cell.textContent = value >= 100 ? Math.round(value) : value.toFixed(1);
+                    cell.title = `${count} ${type.name}${count > 1 ? 's' : ''} = ${value} points`;
+
+                    cells.appendChild(cell);
+                });
+
+                row.appendChild(cells);
+                container.appendChild(row);
+            });
+        }
+
+        function getHeatmapColor(intensity) {
+            // Gradient from dark blue to pink
+            const colors = [
+                { pos: 0, r: 26, g: 26, b: 46 },
+                { pos: 0.2, r: 22, g: 33, b: 62 },
+                { pos: 0.4, r: 29, g: 155, b: 240 },
+                { pos: 0.6, r: 0, g: 186, b: 124 },
+                { pos: 0.8, r: 255, g: 122, b: 0 },
+                { pos: 1, r: 249, g: 24, b: 128 }
+            ];
+
+            // Find the two colors to interpolate between
+            let lower = colors[0];
+            let upper = colors[colors.length - 1];
+            for (let i = 0; i < colors.length - 1; i++) {
+                if (intensity >= colors[i].pos && intensity <= colors[i + 1].pos) {
+                    lower = colors[i];
+                    upper = colors[i + 1];
+                    break;
+                }
+            }
+
+            // Interpolate
+            const range = upper.pos - lower.pos;
+            const t = range === 0 ? 0 : (intensity - lower.pos) / range;
+
+            const r = Math.round(lower.r + (upper.r - lower.r) * t);
+            const g = Math.round(lower.g + (upper.g - lower.g) * t);
+            const b = Math.round(lower.b + (upper.b - lower.b) * t);
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // Generate Engagement Bars
+        function generateEngagementBars() {
+            const container = document.getElementById('engagementBars');
+            const maxWeight = Math.max(...Object.values(WEIGHTS));
+
+            const engagements = [
+                { name: 'Reply', weight: WEIGHTS.reply, emoji: '💬', color: 'var(--pink)' },
+                { name: 'Profile Click', weight: WEIGHTS.profileClick, emoji: '👤', color: 'var(--purple)' },
+                { name: 'Bookmark', weight: WEIGHTS.bookmark, emoji: '🔖', color: 'var(--accent)' },
+                { name: 'Follow Author', weight: WEIGHTS.followAuthor, emoji: '👥', color: 'var(--green)' },
+                { name: 'Quote Tweet', weight: WEIGHTS.quote, emoji: '💬', color: 'var(--orange)' },
+                { name: 'DM Share', weight: WEIGHTS.dmShare, emoji: '📤', color: 'var(--yellow)' },
+                { name: 'Like', weight: WEIGHTS.like, emoji: '❤️', color: '#ff6b6b' },
+                { name: 'Repost', weight: WEIGHTS.repost, emoji: '🔁', color: '#4ecdc4' }
+            ];
+
+            engagements.forEach(eng => {
+                const percentage = (eng.weight / maxWeight) * 100;
+
+                const item = document.createElement('div');
+                item.className = 'bar-item';
+
+                item.innerHTML = `
+                    <div class="bar-header">
+                        <span class="bar-label">${eng.emoji} ${eng.name}</span>
+                        <span class="bar-value" style="color: ${eng.color}">×${eng.weight}</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-fill" style="width: ${percentage}%; background: ${eng.color}"></div>
+                    </div>
+                `;
+
+                container.appendChild(item);
+            });
+        }
+
+        // Calculate Score
+        function calculateScore() {
+            const replies = parseInt(document.getElementById('replies').value) || 0;
+            const profileClicks = parseInt(document.getElementById('profileClicks').value) || 0;
+            const bookmarks = parseInt(document.getElementById('bookmarks').value) || 0;
+            const likes = parseInt(document.getElementById('likes').value) || 0;
+            const reposts = parseInt(document.getElementById('reposts').value) || 0;
+            const quotes = parseInt(document.getElementById('quotes').value) || 0;
+
+            const score =
+                (replies * WEIGHTS.reply) +
+                (profileClicks * WEIGHTS.profileClick) +
+                (bookmarks * WEIGHTS.bookmark) +
+                (likes * WEIGHTS.like) +
+                (reposts * WEIGHTS.repost) +
+                (quotes * WEIGHTS.quote);
+
+            document.getElementById('scoreValue').textContent = score.toFixed(1);
+
+            // Determine tier
+            let tier, tierColor;
+            if (score >= 500) {
+                tier = '🚀 VIRAL POTENTIAL';
+                tierColor = 'var(--pink)';
+            } else if (score >= 200) {
+                tier = '🔥 HIGH PERFORMANCE';
+                tierColor = 'var(--orange)';
+            } else if (score >= 100) {
+                tier = '✅ GOOD';
+                tierColor = 'var(--green)';
+            } else if (score >= 50) {
+                tier = '📊 AVERAGE';
+                tierColor = 'var(--accent)';
+            } else {
+                tier = '📉 LOW REACH';
+                tierColor = 'var(--text-secondary)';
+            }
+
+            const tierElement = document.getElementById('scoreTier');
+            tierElement.textContent = tier;
+            tierElement.style.color = tierColor;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            generateHeatmap();
+            generateEngagementBars();
+            calculateScore();
+        });
+    </script>
+</body>
+
+</html>

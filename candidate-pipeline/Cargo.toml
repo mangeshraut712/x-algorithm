@@ -1,0 +1,17 @@
+[package]
+name = "candidate-pipeline"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+name = "candidate_pipeline"
+path = "lib.rs"
+
+[dependencies]
+async-trait.workspace = true
+futures.workspace = true
+log.workspace = true
+tokio.workspace = true
+tonic.workspace = true

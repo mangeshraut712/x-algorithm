@@ -1,0 +1,39 @@
+[package]
+name = "thunder"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+name = "thunder"
+path = "lib.rs"
+
+[[bin]]
+name = "thunder"
+path = "main.rs"
+
+[dependencies]
+anyhow.workspace = true
+axum = "0.7"
+clap = { version = "4.5", features = ["derive"] }
+log.workspace = true
+env_logger = "0.11"
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tonic.workspace = true
+
+# HTTP server dependencies
+tower = "0.4"
+tower-http = "0.5"
+
+# Kafka dependencies - using cmake feature to avoid librdkafka build issues
+rdkafka = { version = "0.36", features = ["tokio", "cmake-build"], optional = true }
+
+[dev-dependencies]
+# Add dev dependencies if needed
+
+[features]
+default = []
+kafka = ["rdkafka"]

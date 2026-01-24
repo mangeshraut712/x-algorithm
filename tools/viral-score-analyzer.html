@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Analyzer | X Algorithm</title>
+    <meta name="description"
+        content="Analyze your posts before publishing. Get viral score predictions based on the X algorithm.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --bg-hover: #181818;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --blue-hover: #1a8cd8;
+            --green: #00ba7c;
+            --yellow: #ffdc00;
+            --orange: #ff7a00;
+            --pink: #f91880;
+            --purple: #7856ff;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+        }
+
+        /* Header - X Style */
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            padding: 12px 16px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .header-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 500;
+            border-bottom: 4px solid transparent;
+            transition: all 0.2s;
+            background: transparent;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            font-size: 0.95rem;
+        }
+
+        .tab:hover {
+            background: var(--bg-hover);
+        }
+
+        .tab.active {
+            color: var(--text);
+            font-weight: 700;
+            border-bottom-color: var(--blue);
+        }
+
+        /* Compose Area - Like X */
+        .compose-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compose-area {
+            display: flex;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .compose-input {
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: transparent;
+            border: none;
+            color: var(--text);
+            font-size: 1.2rem;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .compose-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .compose-tools {
+            display: flex;
+            gap: 4px;
+        }
+
+        .tool-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--blue);
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(29, 155, 240, 0.1);
+        }
+
+        .char-counter {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .char-counter.warning {
+            color: var(--orange);
+        }
+
+        .char-counter.danger {
+            color: var(--pink);
+        }
+
+        .analyze-btn {
+            padding: 10px 24px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .analyze-btn:hover:not(:disabled) {
+            background: var(--blue-hover);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        /* Post Preview */
+        .post-preview {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .post-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .post-meta {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .post-author {
+            font-weight: 700;
+        }
+
+        .post-handle {
+            color: var(--text-muted);
+        }
+
+        .post-content {
+            flex: 1;
+        }
+
+        .post-text {
+            margin-top: 4px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        /* Score Card */
+        .score-section {
+            padding: 24px 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .score-ring {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 6px;
+            background: conic-gradient(var(--score-color) calc(var(--score) * 3.6deg), var(--border) 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .score-number {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .score-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 16px;
+        }
+
+        .score-badge.viral {
+            background: rgba(0, 186, 124, 0.1);
+            color: var(--green);
+        }
+
+        .score-badge.good {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--blue);
+        }
+
+        .score-badge.average {
+            background: rgba(255, 122, 0, 0.1);
+            color: var(--orange);
+        }
+
+        .score-badge.low {
+            background: rgba(249, 24, 128, 0.1);
+            color: var(--pink);
+        }
+
+        /* Signals */
+        .signals-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .signal-header {
+            padding: 16px;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .signal-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .signal-icon {
+            font-size: 1.2rem;
+            margin-top: 2px;
+        }
+
+        .signal-text {
+            flex: 1;
+        }
+
+        .signal-weight {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .signal-weight.positive {
+            color: var(--green);
+        }
+
+        .signal-weight.negative {
+            color: var(--pink);
+        }
+
+        /* Optimize Section */
+        .optimize-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .optimize-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--green);
+        }
+
+        .optimize-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .optimized-text {
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .optimize-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .optimize-btn {
+            padding: 10px 20px;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .optimize-btn.primary {
+            background: var(--green);
+            color: white;
+            border: none;
+        }
+
+        .optimize-btn.secondary {
+            background: transparent;
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        /* Prediction */
+        .prediction-section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .prediction-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .prediction-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .prediction-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 16px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            border-radius: 9999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background: var(--blue);
+            color: white;
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--blue-hover);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        /* History Tab */
+        .history-section {
+            display: none;
+        }
+
+        .history-item {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .history-preview {
+            color: var(--text-muted);
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-meta {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .history-score {
+            font-weight: 700;
+        }
+
+        .history-score.high {
+            color: var(--green);
+        }
+
+        .history-score.medium {
+            color: var(--orange);
+        }
+
+        .history-score.low {
+            color: var(--pink);
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        /* Compare Tab */
+        .compare-section {
+            display: none;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            background: var(--border);
+        }
+
+        .compare-column {
+            background: var(--bg);
+        }
+
+        .compare-header {
+            padding: 12px;
+            text-align: center;
+            font-weight: 700;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .compare-content {
+            padding: 16px;
+        }
+
+        .compare-textarea {
+            width: 100%;
+            min-height: 150px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .compare-textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .compare-score {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .compare-score-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .compare-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 16px 0;
+        }
+
+        footer {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <a href="../index.html" class="back-btn">←</a>
+                <h1 class="header-title">Post Analyzer</h1>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('analyze')">✍️ Analyze</button>
+                <button class="tab" onclick="switchTab('compare')">⚔️ Compare</button>
+                <button class="tab" onclick="switchTab('history')">📜 History</button>
+            </div>
+        </header>
+
+        <!-- Analyze Tab -->
+        <div id="analyze-tab">
+            <!-- Compose Section -->
+            <div class="compose-section" id="composeSection">
+                <div class="compose-area">
+                    <div class="avatar">👤</div>
+                    <div class="compose-input">
+                        <textarea id="postInput" placeholder="What's happening?" oninput="updateCharCount()"></textarea>
+                        <div class="compose-footer">
+                            <div class="compose-tools">
+                                <button class="tool-btn" title="Image">🖼️</button>
+                                <button class="tool-btn" title="GIF">📸</button>
+                                <button class="tool-btn" title="Poll">📊</button>
+                                <button class="tool-btn" title="Emoji">😊</button>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span class="char-counter" id="charCounter">0 / 280</span>
+                                <button class="analyze-btn" id="analyzeBtn" onclick="analyzePost()"
+                                    disabled>Analyze</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <!-- Post Preview -->
+                <div class="post-preview">
+                    <div class="post-header">
+                        <div class="avatar">👤</div>
+                        <div class="post-content">
+                            <div class="post-meta">
+                                <span class="post-author">You</span>
+                                <span class="post-handle">@you</span>
+                                <span class="post-handle">· Draft</span>
+                            </div>
+                            <div class="post-text" id="postPreview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Score -->
+                <div class="score-section">
+                    <div class="score-ring" id="scoreRing" style="--score: 0; --score-color: var(--pink);">
+                        <span class="score-number" id="scoreNumber">0</span>
+                        <span class="score-label">/ 100</span>
+                    </div>
+                    <div class="score-badge low" id="scoreBadge">NEEDS WORK</div>
+                </div>
+
+                <!-- Signals -->
+                <div class="signals-section">
+                    <div class="signal-header">📊 Signal Analysis</div>
+                    <div id="signalsList"></div>
+                </div>
+
+                <!-- Optimize -->
+                <div class="optimize-section" id="optimizeSection" style="display: none;">
+                    <div class="optimize-card">
+                        <div class="optimize-header">✨ Optimized Version</div>
+                        <div class="optimized-text" id="optimizedText"></div>
+                        <div class="optimize-actions">
+                            <button class="optimize-btn primary" onclick="copyOptimized()">📋 Copy</button>
+                            <button class="optimize-btn secondary" onclick="useOptimized()">🔄 Analyze This</button>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="action-btn primary" id="optimizeBtn" onclick="optimizePost()"
+                    style="margin: 16px; width: calc(100% - 32px);">
+                    ✨ Optimize My Post
+                </button>
+
+                <!-- Predictions -->
+                <div class="prediction-section">
+                    <div class="prediction-grid">
+                        <div class="prediction-card">
+                            <div class="prediction-value" id="predViews">0</div>
+                            <div class="prediction-label">Est. Views</div>
+                        </div>
+                        <div class="prediction-card">
+                            <div class="prediction-value" id="predLikes">0</div>
+                            <div class="prediction-label">Est. Likes</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="action-buttons">
+                    <button class="action-btn secondary" onclick="saveToHistory()">💾 Save</button>
+                    <button class="action-btn secondary" onclick="resetAnalyzer()">✍️ New Post</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compare Tab -->
+        <div id="compare-tab" class="compare-section">
+            <div class="compare-grid">
+                <div class="compare-column">
+                    <div class="compare-header">Version A</div>
+                    <div class="compare-content">
+                        <textarea class="compare-textarea" id="compareA" placeholder="Paste first version..."
+                            oninput="updateCompare()"></textarea>
+                        <div class="compare-score">
+                            <div class="compare-score-value" id="scoreA">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="compare-column">
+                    <div class="compare-header">Version B</div>
+                    <div class="compare-content">
+                        <textarea class="compare-textarea" id="compareB" placeholder="Paste second version..."
+                            oninput="updateCompare()"></textarea>
+                        <div class="compare-score">
+                            <div class="compare-score-value" id="scoreB">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="padding: 16px; text-align: center;">
+                <div id="compareResult" style="font-size: 1.1rem; margin-top: 12px;"></div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history-tab" class="history-section">
+            <div id="historyList"></div>
+            <div class="empty-state" id="emptyHistory">
+                <div class="empty-icon">📜</div>
+                <div>No saved posts yet</div>
+                <div style="margin-top: 8px;">Analyze a post and save it to see it here</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
+    </div>
+
+    <script>
+        let currentAnalysis = null;
+        let history = JSON.parse(localStorage.getItem('postHistory') || '[]');
+
+        function updateCharCount() {
+            const text = document.getElementById('postInput').value;
+            const counter = document.getElementById('charCounter');
+            const len = text.length;
+
+            counter.textContent = `${len} / 280`;
+            counter.className = 'char-counter';
+
+            if (len > 280) counter.classList.add('danger');
+            else if (len > 240) counter.classList.add('warning');
+
+            document.getElementById('analyzeBtn').disabled = len === 0;
+        }
+
+        function analyzeSignals(text) {
+            const signals = [];
+            const lowerText = text.toLowerCase();
+
+            // HOOK DETECTION
+            const firstLine = text.split('\n')[0].trim();
+            const strongHookPatterns = [
+                /^(i built|i made|i spent|i lost|i earned|just launched|breaking|unpopular opinion|hot take|stop doing|here's why|the truth about)/i,
+                /^(ever wonder|what if|how I|why most|the \d+)/i,
+                /^\d+\s*(things|ways|tips|lessons|mistakes)/i
+            ];
+            const hasStrongHook = strongHookPatterns.some(p => p.test(firstLine));
+            const hasWeakHook = firstLine.endsWith('?') || firstLine.length < 50;
+
+            if (hasStrongHook) {
+                signals.push({ positive: true, text: 'Strong hook - grabs attention', weight: 18 });
+            } else if (hasWeakHook) {
+                signals.push({ positive: true, text: 'Decent hook', weight: 8 });
+            } else {
+                signals.push({ positive: false, text: 'Weak hook - doesn\'t grab attention', weight: -5 });
+            }
+
+            // QUESTION
+            const questionCount = (text.match(/\?/g) || []).length;
+            if (questionCount >= 1) {
+                signals.push({ positive: true, text: `Contains question (drives replies)`, weight: 15 });
+            } else {
+                signals.push({ positive: false, text: 'No question (missing 27x reply boost)', weight: -8 });
+            }
+
+            // FORMATTING
+            const lineCount = text.split('\n').filter(l => l.trim()).length;
+            if (lineCount >= 4) {
+                signals.push({ positive: true, text: 'Great formatting (easy to scan)', weight: 12 });
+            } else if (lineCount >= 2) {
+                signals.push({ positive: true, text: 'OK formatting', weight: 5 });
+            } else if (text.length > 150) {
+                signals.push({ positive: false, text: 'Wall of text (hard to read)', weight: -10 });
+            }
+
+            // DATA
+            const hasData = /(\$[\d,]+|\d+[%kKmM]|\d{2,}[,.]?\d*)/.test(text);
+            if (hasData) {
+                signals.push({ positive: true, text: 'Contains data = credibility', weight: 10 });
+            }
+
+            // CONTROVERSY
+            const hasControversy = /(wrong|disagree|unpopular|truth|secret|nobody|overrated|underrated|stop|never|always|myth|lie)/i.test(text);
+            if (hasControversy) {
+                signals.push({ positive: true, text: 'Takes a stance (drives engagement)', weight: 10 });
+            }
+
+            // CTA
+            const strongCTA = /(follow for|save this|bookmark|reply below|drop a|what's your|thoughts\?|agree\?)/i.test(text);
+            if (strongCTA) {
+                signals.push({ positive: true, text: 'Strong CTA (drives replies)', weight: 12 });
+            } else {
+                signals.push({ positive: false, text: 'No CTA (no engagement prompt)', weight: -5 });
+            }
+
+            // TAGGING
+            const relevantMentions = /@(elonmusk|xai|gaborrosenfeld|naval|paulg|sama|pmarca)/i.test(text);
+            if (relevantMentions) {
+                signals.push({ positive: true, text: 'Tags relevant account (visibility boost)', weight: 12 });
+            }
+
+            // THREAD
+            const hasThread = text.includes('🧵') || lowerText.includes('thread');
+            if (hasThread) {
+                signals.push({ positive: true, text: 'Thread format (higher dwell time)', weight: 10 });
+            }
+
+            // LINK PENALTY
+            const hasLink = /(https?:\/\/|www\.|\.\com\/|\.\xyz\/|\.\io\/)/i.test(text);
+            if (hasLink) {
+                signals.push({ positive: false, text: '⚠️ LINK IN POST - Major reach penalty!', weight: -40 });
+            }
+
+            // HASHTAGS
+            const hashtagCount = (text.match(/#\w+/g) || []).length;
+            if (hashtagCount > 3) {
+                signals.push({ positive: false, text: `Too many hashtags (${hashtagCount}) - looks spammy`, weight: -12 });
+            } else if (hashtagCount > 1) {
+                signals.push({ positive: false, text: `${hashtagCount} hashtags (1 max is optimal)`, weight: -3 });
+            }
+
+            // LENGTH
+            if (text.length < 50) {
+                signals.push({ positive: false, text: 'Too short (lacks substance)', weight: -15 });
+            }
+
+            // GENERIC PHRASES
+            const genericPhrases = /(check it out|let me know|link in bio|just launched|really proud|excited to share|happy to announce)/i.test(text);
+            if (genericPhrases) {
+                signals.push({ positive: false, text: 'Generic phrase (low engagement pattern)', weight: -8 });
+            }
+
+            return signals;
+        }
+
+        function calculateScore(signals) {
+            let score = 45;
+            signals.forEach(s => score += s.weight);
+            return Math.max(0, Math.min(100, Math.round(score)));
+        }
+
+        function analyzePost() {
+            const text = document.getElementById('postInput').value.trim();
+            if (!text) return;
+
+            document.getElementById('composeSection').style.display = 'none';
+            document.getElementById('resultsSection').classList.add('visible');
+            document.getElementById('postPreview').textContent = text;
+            document.getElementById('optimizeSection').style.display = 'none';
+            document.getElementById('optimizeBtn').style.display = 'block';
+
+            const signals = analyzeSignals(text);
+            const score = calculateScore(signals);
+
+            currentAnalysis = { text, signals, score, date: new Date().toISOString() };
+
+            // Update score display
+            const scoreRing = document.getElementById('scoreRing');
+            const scoreNumber = document.getElementById('scoreNumber');
+            const scoreBadge = document.getElementById('scoreBadge');
+
+            scoreNumber.textContent = score;
+            scoreRing.style.setProperty('--score', score);
+
+            let tier, color, badgeClass;
+            if (score >= 75) {
+                tier = '🚀 VIRAL POTENTIAL';
+                color = 'var(--green)';
+                badgeClass = 'viral';
+            } else if (score >= 55) {
+                tier = '✅ GOOD POST';
+                color = 'var(--blue)';
+                badgeClass = 'good';
+            } else if (score >= 35) {
+                tier = '⚠️ AVERAGE';
+                color = 'var(--orange)';
+                badgeClass = 'average';
+            } else {
+                tier = '❌ NEEDS WORK';
+                color = 'var(--pink)';
+                badgeClass = 'low';
+            }
+
+            scoreRing.style.setProperty('--score-color', color);
+            scoreBadge.textContent = tier;
+            scoreBadge.className = `score-badge ${badgeClass}`;
+
+            // Render signals
+            document.getElementById('signalsList').innerHTML = signals.map(s => `
+                <div class="signal-item">
+                    <span class="signal-icon">${s.positive ? '✅' : '❌'}</span>
+                    <span class="signal-text">${s.text}</span>
+                    <span class="signal-weight ${s.positive ? 'positive' : 'negative'}">${s.weight > 0 ? '+' : ''}${s.weight}</span>
+                </div>
+            `).join('');
+
+            // Predictions
+            const baseViews = score >= 75 ? 5000 : (score >= 50 ? 500 : 50);
+            const views = Math.round(baseViews * (score / 50));
+            const likes = Math.round(views * 0.04);
+            document.getElementById('predViews').textContent = views.toLocaleString();
+            document.getElementById('predLikes').textContent = likes.toLocaleString();
+        }
+
+        function optimizePost() {
+            if (!currentAnalysis) return;
+
+            let optimized = currentAnalysis.text;
+
+            // Remove links
+            const hasLink = /(https?:\/\/[^\s]+)/gi.test(optimized);
+            if (hasLink) {
+                optimized = optimized.replace(/(https?:\/\/[^\s]+)/gi, '').trim();
+                if (!optimized.includes('👇')) {
+                    optimized += '\n\n(Link in reply 👇)';
+                }
+            }
+
+            // Improve hook
+            const lines = optimized.split('\n').filter(l => l.trim());
+            const hookTransforms = [
+                { pattern: /^(New Year Update:|Update:|Announcement:)/i, replacement: 'I just shipped something special:' },
+                { pattern: /^(Just launched|Excited to share|Happy to announce)/i, replacement: 'I built' },
+                { pattern: /^(Check out|Look at|See my)/i, replacement: 'I created' },
+            ];
+            hookTransforms.forEach(t => {
+                if (t.pattern.test(lines[0])) {
+                    lines[0] = lines[0].replace(t.pattern, t.replacement);
+                }
+            });
+            optimized = lines.join('\n\n');
+
+            // Add question
+            if (!optimized.includes('?')) {
+                const questions = ["What do you think?", "Have you tried something similar?", "Agree or disagree?"];
+                optimized += `\n\n${questions[Math.floor(Math.random() * questions.length)]} 👇`;
+            }
+
+            optimized = optimized.replace(/\n{3,}/g, '\n\n').trim();
+
+            currentAnalysis.optimized = optimized;
+            document.getElementById('optimizedText').textContent = optimized;
+            document.getElementById('optimizeSection').style.display = 'block';
+            document.getElementById('optimizeBtn').style.display = 'none';
+        }
+
+        function copyOptimized() {
+            if (!currentAnalysis?.optimized) return;
+            navigator.clipboard.writeText(currentAnalysis.optimized);
+            alert('Copied to clipboard!');
+        }
+
+        function useOptimized() {
+            if (!currentAnalysis?.optimized) return;
+            document.getElementById('postInput').value = currentAnalysis.optimized;
+            resetAnalyzer();
+            setTimeout(analyzePost, 100);
+        }
+
+        function resetAnalyzer() {
+            document.getElementById('composeSection').style.display = 'block';
+            document.getElementById('resultsSection').classList.remove('visible');
+            document.getElementById('optimizeSection').style.display = 'none';
+            currentAnalysis = null;
+            updateCharCount();
+        }
+
+        function saveToHistory() {
+            if (!currentAnalysis) return;
+            history.unshift(currentAnalysis);
+            if (history.length > 20) history = history.slice(0, 20);
+            localStorage.setItem('postHistory', JSON.stringify(history));
+            alert('Saved to history!');
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const empty = document.getElementById('emptyHistory');
+
+            if (history.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.innerHTML = history.map((item, i) => {
+                let scoreClass = 'low';
+                if (item.score >= 75) scoreClass = 'high';
+                else if (item.score >= 50) scoreClass = 'medium';
+
+                return `
+                    <div class="history-item" onclick="loadFromHistory(${i})">
+                        <div class="history-score ${scoreClass}">Score: ${item.score}/100</div>
+                        <div class="history-preview">${item.text.substring(0, 100)}${item.text.length > 100 ? '...' : ''}</div>
+                        <div class="history-meta">
+                            <span>${new Date(item.date).toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFromHistory(index) {
+            document.getElementById('postInput').value = history[index].text;
+            switchTab('analyze');
+            analyzePost();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('analyze-tab').style.display = tab === 'analyze' ? 'block' : 'none';
+            document.getElementById('compare-tab').style.display = tab === 'compare' ? 'block' : 'none';
+            document.getElementById('history-tab').style.display = tab === 'history' ? 'block' : 'none';
+
+            if (tab === 'history') renderHistory();
+        }
+
+        function updateCompare() {
+            const textA = document.getElementById('compareA').value.trim();
+            const textB = document.getElementById('compareB').value.trim();
+
+            if (textA) {
+                const scoreA = calculateScore(analyzeSignals(textA));
+                document.getElementById('scoreA').textContent = scoreA;
+                document.getElementById('scoreA').style.color = scoreA >= 50 ? 'var(--green)' : 'var(--pink)';
+            } else {
+                document.getElementById('scoreA').textContent = '-';
+            }
+
+            if (textB) {
+                const scoreB = calculateScore(analyzeSignals(textB));
+                document.getElementById('scoreB').textContent = scoreB;
+                document.getElementById('scoreB').style.color = scoreB >= 50 ? 'var(--green)' : 'var(--pink)';
+            } else {
+                document.getElementById('scoreB').textContent = '-';
+            }
+
+            if (textA && textB) {
+                const scoreA = calculateScore(analyzeSignals(textA));
+                const scoreB = calculateScore(analyzeSignals(textB));
+                const diff = scoreB - scoreA;
+                const result = document.getElementById('compareResult');
+
+                if (diff > 0) {
+                    result.innerHTML = `<span style="color: var(--green)">Version B wins by ${diff} points! ✅</span>`;
+                } else if (diff < 0) {
+                    result.innerHTML = `<span style="color: var(--green)">Version A wins by ${Math.abs(diff)} points! ✅</span>`;
+                } else {
+                    result.innerHTML = `<span style="color: var(--orange)">It's a tie! 🤝</span>`;
+                }
+            }
+        }
+
+        // Initialize
+        renderHistory();
+    </script>
+</body>
+
+</html>

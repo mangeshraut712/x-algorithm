@@ -1,5 +1,5 @@
 use crate::util;
-use std::any::{Any, type_name_of_val};
+use std::any::Any;
 use tonic::async_trait;
 
 // Hydrators run in parallel and update candidate fields
@@ -34,6 +34,6 @@ where
     }
 
     fn name(&self) -> &'static str {
-        util::short_type_name(type_name_of_val(self))
+        util::short_type_name(std::any::type_name::<Self>())
     }
 }

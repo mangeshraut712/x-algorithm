@@ -1,13 +1,18 @@
 # Contributing to X Algorithm
 
-Thank you for your interest in contributing to the X Recommendation Algorithm! This project is a core part of X's transparency mission, and we welcome community involvement.
+First off, thank you for considering contributing to the X Algorithm project! 🎉
+
+This document provides guidelines and information for contributors.
 
 ## Table of Contents
-- [Our Principles](#our-principles)
-- [How to Contribute](#how-to-contribute)
-- [Development Environment](#development-environment)
-- [Code Style](#code-style)
-- [Reporting Issues](#reporting-issues)
+
+- [Code of Conduct](#code-of-conduct)
+- [Getting Started](#getting-started)
+- [Development Setup](#development-setup)
+- [Making Changes](#making-changes)
+- [Testing](#testing)
+- [Submitting Changes](#submitting-changes)
+- [Style Guide](#style-guide)
 
 ## Our Principles
 1. **Transparency**: Every change should be understandable and its impact on user experience should be clear.
@@ -15,53 +20,138 @@ Thank you for your interest in contributing to the X Recommendation Algorithm! T
 3. **Diversity**: We strive for a feed that is diverse and representative of different perspectives.
 4. **Safety**: Protecting users from spam, violence, and harmful content is built into the pipeline.
 
-## How to Contribute
-We welcome various types of contributions:
-- **Optimization**: Performance improvements in the Rust-based pipeline or JAX-based ML model.
-- **Explainability**: Tools or documentation that help people understand why certain content is recommended.
-- **Testing**: Adding benchmarks or robust unit tests for the complex scoring logic.
-- **Documentation**: Clarifying the architecture and design decisions.
+## Code of Conduct
 
-### Submitting a Pull Request
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/amazing-feature`).
-3. Commit your changes with descriptive messages.
-4. Push to the branch (`git push origin feature/amazing-feature`).
-5. Open a Pull Request with a detailed description of your changes and why they are beneficial.
+This project adheres to a Code of Conduct. By participating, you are expected to uphold this code. Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-## Development Environment
+## Getting Started
+
+### Prerequisites
+
+- **Rust** 1.75+ (install via [rustup](https://rustup.rs/))
+- **Python** 3.11+ (for phoenix/ ML components)
+- **uv** (for Python dependency management)
+- **Node.js** 18+ (optional, for web tools development)
+- **Git**
+
+### Fork and Clone
+
+1. Fork the repository on GitHub
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/x-algorithm.git
+   cd x-algorithm
+   ```
+
+3. Add the upstream remote:
+   ```bash
+   git remote add upstream https://github.com/mangeshraut712/x-algorithm.git
+   ```
+
+## Development Setup
 
 ### Rust Components (`home-mixer`, `thunder`, `candidate-pipeline`)
 The Rust components use standard Cargo. 
 To build:
 ```bash
-cargo build
+cargo build --workspace
 ```
 To run tests:
 ```bash
-cargo test
+cargo test --workspace
 ```
 
 ### ML Components (`phoenix`)
-The ML models are implemented in Python using JAX and Haiku. We recommend using `uv` for dependency management.
+The ML models are implemented in Python using JAX and Haiku. We use `uv` for dependency management.
 ```bash
 cd phoenix
 uv sync
 ```
 To run model tests:
 ```bash
-pytest
+uv run pytest
 ```
 
-## Code Style
-- **Rust**: We follow standard Rust idioms. Use `cargo fmt` and `cargo clippy`.
-- **Python**: We use `ruff` for linting and formatting.
+## Making Changes
 
-## Reporting Issues
-Please use the GitHub Issue Tracker to report bugs or suggest enhancements. When reporting a bug, please include:
-- A clear description of the issue.
-- Steps to reproduce (if applicable).
-- Expected vs. actual behavior.
+### Branch Naming
+
+Use descriptive branch names:
+
+- `feature/add-scoring-feature` - New features
+- `fix/correct-weight-calculation` - Bug fixes
+- `docs/update-api-reference` - Documentation
+- `refactor/simplify-pipeline` - Code refactoring
+- `test/add-integration-tests` - Test additions
+
+### Commit Messages
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```
+feat: add bookmark weight to scoring
+fix: correct freshness decay calculation
+docs: update API reference
+test: add weighted scorer benchmarks
+refactor: simplify candidate pipeline
+chore: update dependencies
+```
+
+## Testing
+
+### Rust Tests
+```bash
+cargo test --workspace
+```
+
+### Python/ML Tests
+```bash
+cd phoenix
+uv run pytest
+```
+
+## Submitting Changes
+
+### Pull Request Process
+
+1. **Update your fork:**
+   ```bash
+   git fetch upstream
+   git rebase upstream/main
+   ```
+
+2. **Create a feature branch:**
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+
+3. **Make your changes and commit:**
+   ```bash
+   git add .
+   git commit -m "feat: description of change"
+   ```
+
+4. **Push to your fork:**
+   ```bash
+   git push origin feature/my-feature
+   ```
+
+5. **Open a Pull Request** on GitHub
+
+### PR Requirements
+
+- [ ] All tests pass (`cargo test` and `uv run pytest`)
+- [ ] Code builds without warnings
+- [ ] Documentation updated if needed
+- [ ] Commit messages follow conventions
+- [ ] PR description explains the changes
+
+## Style Guide
+
+- **Rust**: Use `cargo fmt` and `cargo clippy`.
+- **Python**: Use `ruff` for linting and formatting.
+- **Web**: 4-space indentation, ES6+ patterns.
 
 ---
-*Note: This is an open-source release of the production algorithm. Some internal infrastructure details are intentionally omitted or simplified.*
+
+Thank you for contributing! 🚀

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Calculator | X Algorithm</title>
+    <meta name="description" content="Calculate how engagement drives ranking scores using X's actual weights.">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧮</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #000;
+            --bg-secondary: #16181c;
+            --bg-tertiary: #202327;
+            --border: #2f3336;
+            --text: #e7e9ea;
+            --text-muted: #71767b;
+            --blue: #1d9bf0;
+            --green: #00ba7c;
+            --pink: #f91880;
+            --orange: #ff7a00;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border-left: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky;
+            top: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            z-index: 10;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .back-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background: var(--bg-tertiary);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .section {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+        }
+
+        /* Sliders */
+        .slider-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .slider-item {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .slider-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slider-weight {
+            background: var(--bg-tertiary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .slider-weight.negative {
+            color: var(--pink);
+        }
+
+        .slider-value {
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            appearance: none;
+            background: var(--bg-tertiary);
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--blue);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(29, 155, 240, 0.4);
+        }
+
+        /* Score Display */
+        .score-display {
+            text-align: center;
+            padding: 32px 16px;
+        }
+
+        .score-ring {
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin: 0 auto 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--bg-secondary);
+        }
+
+        .score-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            padding: 6px;
+            background: conic-gradient(var(--score-color) calc(var(--score-pct) * 3.6deg), var(--border) 0);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .score-label {
+            color: var(--text-muted);
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 9999px;
+            font-weight: 700;
+        }
+
+        .score-badge.viral {
+            background: rgba(0, 186, 124, 0.1);
+            color: var(--green);
+        }
+
+        .score-badge.good {
+            background: rgba(29, 155, 240, 0.1);
+            color: var(--blue);
+        }
+
+        .score-badge.average {
+            background: rgba(255, 122, 0, 0.1);
+            color: var(--orange);
+        }
+
+        .score-badge.low {
+            background: rgba(249, 24, 128, 0.1);
+            color: var(--pink);
+        }
+
+        /* Breakdown */
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .breakdown-item {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .breakdown-value {
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        .breakdown-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Checkboxes */
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--blue);
+        }
+
+        footer {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <a href="../index.html" class="back-btn">←</a>
+            <h1>🧮 Score Calculator</h1>
+        </header>
+
+        <!-- Score Display -->
+        <div class="score-display">
+            <div class="score-ring" id="scoreRing" style="--score-pct: 0; --score-color: var(--pink);">
+                <span class="score-value" id="scoreValue">0</span>
+                <span class="score-label">Total Score</span>
+            </div>
+            <div class="score-badge low" id="scoreBadge">Calculate your score</div>
+        </div>
+
+        <!-- Engagement Sliders -->
+        <div class="section">
+            <div class="section-title">📊 Engagement Probabilities</div>
+            <p class="section-desc">Estimate the probability (0-100%) that users will take each action</p>
+
+            <div class="slider-grid">
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">❤️ Like <span class="slider-weight">×1.0</span></span>
+                        <span class="slider-value" id="like-val">15%</span>
+                    </div>
+                    <input type="range" id="like" min="0" max="100" value="15" oninput="calculate()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">💬 Reply <span class="slider-weight">×27.0</span></span>
+                        <span class="slider-value" id="reply-val">5%</span>
+                    </div>
+                    <input type="range" id="reply" min="0" max="100" value="5" oninput="calculate()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">🔁 Repost <span class="slider-weight">×1.0</span></span>
+                        <span class="slider-value" id="repost-val">3%</span>
+                    </div>
+                    <input type="range" id="repost" min="0" max="100" value="3" oninput="calculate()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">👤 Profile Click <span class="slider-weight">×12.0</span></span>
+                        <span class="slider-value" id="profile-val">8%</span>
+                    </div>
+                    <input type="range" id="profile" min="0" max="100" value="8" oninput="calculate()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">🔖 Bookmark <span class="slider-weight">×4.0</span></span>
+                        <span class="slider-value" id="bookmark-val">3%</span>
+                    </div>
+                    <input type="range" id="bookmark" min="0" max="100" value="3" oninput="calculate()">
+                </div>
+
+                <div class="slider-item">
+                    <div class="slider-header">
+                        <span class="slider-label">📤 Share <span class="slider-weight">×2.0</span></span>
+                        <span class="slider-value" id="share-val">2%</span>
+                    </div>
+                    <input type="range" id="share" min="0" max="100" value="2" oninput="calculate()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Media Bonuses -->
+        <div class="section">
+            <div class="section-title">🎬 Content Bonuses</div>
+            <div class="checkbox-grid">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hasVideo" onchange="calculate()">
+                    <span>Has Video (VQV bonus)</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hasImage" onchange="calculate()">
+                    <span>Has Image</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="hasLink" onchange="calculate()">
+                    <span>Has External Link</span>
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="isBlueCheck" onchange="calculate()">
+                    <span>Blue Verified</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Breakdown -->
+        <div class="section">
+            <div class="section-title">📈 Score Breakdown</div>
+            <div class="breakdown-grid" id="breakdown"></div>
+        </div>
+
+        <footer>
+            <p>Based on the <a href="https://github.com/mangeshraut712/x-algorithm">open-source X algorithm</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const WEIGHTS = {
+            like: 1.0,
+            reply: 27.0,
+            repost: 1.0,
+            profile: 12.0,
+            bookmark: 4.0,
+            share: 2.0,
+            vqv: 0.3,
+            image: 0.5
+        };
+
+        function calculate() {
+            const sliders = ['like', 'reply', 'repost', 'profile', 'bookmark', 'share'];
+            const values = {};
+
+            sliders.forEach(id => {
+                const val = parseInt(document.getElementById(id).value);
+                document.getElementById(`${id}-val`).textContent = `${val}%`;
+                values[id] = val / 100;
+            });
+
+            // Calculate base score
+            let score =
+                (values.like * WEIGHTS.like * 100) +
+                (values.reply * WEIGHTS.reply * 100) +
+                (values.repost * WEIGHTS.repost * 100) +
+                (values.profile * WEIGHTS.profile * 100) +
+                (values.bookmark * WEIGHTS.bookmark * 100) +
+                (values.share * WEIGHTS.share * 100);
+
+            // Bonuses
+            const hasVideo = document.getElementById('hasVideo').checked;
+            const hasImage = document.getElementById('hasImage').checked;
+            const hasLink = document.getElementById('hasLink').checked;
+            const isBlue = document.getElementById('isBlueCheck').checked;
+
+            if (hasVideo) score += 15;
+            if (hasImage) score += 10;
+            if (isBlue) score *= 1.2;
+            if (hasLink) score *= 0.1;
+
+            score = Math.round(score);
+
+            // Update display
+            const maxScore = 500;
+            const pct = Math.min(100, (score / maxScore) * 100);
+
+            const ring = document.getElementById('scoreRing');
+            const value = document.getElementById('scoreValue');
+            const badge = document.getElementById('scoreBadge');
+
+            value.textContent = score;
+            ring.style.setProperty('--score-pct', pct);
+
+            let tier, color, badgeClass;
+            if (score >= 300) {
+                tier = '🚀 VIRAL POTENTIAL';
+                color = 'var(--green)';
+                badgeClass = 'viral';
+            } else if (score >= 150) {
+                tier = '✅ GOOD SCORE';
+                color = 'var(--blue)';
+                badgeClass = 'good';
+            } else if (score >= 50) {
+                tier = '⚠️ AVERAGE';
+                color = 'var(--orange)';
+                badgeClass = 'average';
+            } else {
+                tier = '❌ LOW SCORE';
+                color = 'var(--pink)';
+                badgeClass = 'low';
+            }
+
+            ring.style.setProperty('--score-color', color);
+            badge.textContent = tier;
+            badge.className = `score-badge ${badgeClass}`;
+
+            // Breakdown
+            const breakdown = document.getElementById('breakdown');
+            breakdown.innerHTML = `
+                <div class="breakdown-item">
+                    <div class="breakdown-value">+${Math.round(values.reply * WEIGHTS.reply * 100)}</div>
+                    <div class="breakdown-label">Replies (27×)</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value">+${Math.round(values.profile * WEIGHTS.profile * 100)}</div>
+                    <div class="breakdown-label">Profile Clicks (12×)</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value">+${Math.round(values.bookmark * WEIGHTS.bookmark * 100)}</div>
+                    <div class="breakdown-label">Bookmarks (4×)</div>
+                </div>
+                <div class="breakdown-item">
+                    <div class="breakdown-value">+${Math.round(values.like * WEIGHTS.like * 100)}</div>
+                    <div class="breakdown-label">Likes (1×)</div>
+                </div>
+                ${hasLink ? `
+                    <div class="breakdown-item" style="border: 1px solid var(--pink);">
+                        <div class="breakdown-value" style="color: var(--pink);">-90%</div>
+                        <div class="breakdown-label">Link Penalty</div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Initial calculation
+        calculate();
+    </script>
+</body>
+
+</html>
