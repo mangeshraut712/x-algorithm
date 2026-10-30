@@ -22,6 +22,7 @@ import sid_lookup_pb2_grpc
 
 
 def _load_index(parquet: str) -> tuple[np.ndarray, np.ndarray]:
+    import pyarrow as pa
     import pyarrow.parquet as pq
 
     t = pq.read_table(parquet, columns=["post_id", "post_sid"])
@@ -29,7 +30,10 @@ def _load_index(parquet: str) -> tuple[np.ndarray, np.ndarray]:
     sid_col = t.column("post_sid").combine_chunks()
     if sid_col.null_count:
         raise ValueError("post_sid contains null rows")
-    row_lengths = np.diff(sid_col.offsets.to_numpy(zero_copy_only=False))
+    if pa.types.is_fixed_size_list(sid_col.type):
+        row_lengths = np.full(len(sid_col), sid_col.type.list_size)
+    else:
+        row_lengths = np.diff(sid_col.offsets.to_numpy(zero_copy_only=False))
     width = int(row_lengths[0])
     if (row_lengths != width).any():
         raise ValueError(

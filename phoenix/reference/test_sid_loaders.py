@@ -12,13 +12,15 @@ from reference.dump_gen import _load_sid_codes
 from reference.sid_index_server import _load_index
 
 
-def _write_snapshot(tmp_path, rows, post_ids=(101, 102, 103)):
+def _write_snapshot(tmp_path, rows, post_ids=(101, 102, 103), list_size=None):
     path = tmp_path / "sid.parquet"
     pq.write_table(
         pa.table(
             {
                 "post_id": pa.array(post_ids, type=pa.int64()),
-                "post_sid": pa.array(rows, type=pa.list_(pa.int64())),
+                "post_sid": pa.array(
+                    rows, type=pa.list_(pa.int64(), list_size) if list_size else pa.list_(pa.int64())
+                ),
             }
         ),
         path,
@@ -54,11 +56,13 @@ def test_loaders_reject_malformed_sid_rows(tmp_path, loader, rows, error):
             _load_sid_codes(path, world)
 
 
-def test_server_preserves_codes_when_sorting_valid_rows(tmp_path):
+@pytest.mark.parametrize("list_size", [None, 6], ids=["list", "fixed-size-list"])
+def test_server_preserves_codes_when_sorting_valid_rows(tmp_path, list_size):
     path = _write_snapshot(
         tmp_path,
         [[20, 21, 22, 23, 24, 25], [-1, -1, -1, -1, -1, -1], [0, 1, 2, 3, 4, 5]],
         post_ids=[103, 102, 101],
+        list_size=list_size,
     )
     post_ids, codes = _load_index(path)
     np.testing.assert_array_equal(post_ids, [101, 102, 103])
@@ -69,12 +73,24 @@ def test_server_preserves_codes_when_sorting_valid_rows(tmp_path):
     assert codes.dtype == np.int32
 
 
-def test_dump_preserves_valid_codes_in_world_order(tmp_path):
+@pytest.mark.parametrize("list_size", [None, 6], ids=["list", "fixed-size-list"])
+def test_dump_preserves_valid_codes_in_world_order(tmp_path, list_size):
     rows = [[20, 21, 22, 23, 24, 25], [-1, -1, -1, -1, -1, -1], [0, 1, 2, 3, 4, 5]]
-    path = _write_snapshot(tmp_path, rows, post_ids=[103, 102, 101])
+    path = _write_snapshot(tmp_path, rows, post_ids=[103, 102, 101], list_size=list_size)
     world = SimpleNamespace(num_posts=3, post_id=np.array([103, 102, 101]))
     codes = _load_sid_codes(path, world)
     np.testing.assert_array_equal(
         codes, [[20, 21, 22, 23, 24, 25], [-1, -1, -1, -1, -1, -1], [0, 1, 2, 3, 4, 5]]
     )
     assert codes.dtype == np.int32
+
+
+def test_dump_rejects_wrong_fixed_size_list_width(tmp_path):
+    path = _write_snapshot(
+        tmp_path,
+        [[0, 1, 2, 3, 4], [10, 11, 12, 13, 14], [20, 21, 22, 23, 24]],
+        list_size=5,
+    )
+    world = SimpleNamespace(num_posts=3, post_id=np.array([101, 102, 103]))
+    with pytest.raises(SystemExit, match="fixed-width 6"):
+        _load_sid_codes(path, world)
