@@ -207,6 +207,7 @@ def _make_dataset(
     _enable_stale_post = mparams.get("enable_stale_post", False)
     _ads_head_masking = mparams.get("ads_head_masking", False)
     _ads_pixel_head_masking = mparams.get("ads_pixel_head_masking", False)
+    _ads_late_window_heads = mparams.get("ads_late_window_heads", False)
 
     match dataset_type:
         case "aggregated_kafka":
@@ -226,6 +227,7 @@ def _make_dataset(
                 enable_stale_post=_enable_stale_post,
                 ads_head_masking=_ads_head_masking,
                 ads_pixel_head_masking=_ads_pixel_head_masking,
+                ads_late_window_heads=_ads_late_window_heads,
             )
         case "toy_dataset":
             return PhoenixToyDataset(
@@ -243,6 +245,7 @@ def _make_dataset(
                 enable_stale_post=_enable_stale_post,
                 ads_head_masking=_ads_head_masking,
                 ads_pixel_head_masking=_ads_pixel_head_masking,
+                ads_late_window_heads=_ads_late_window_heads,
             )
         case _:
             raise ValueError(f"Uknown {dataset_type=}, must be one of {DATASET_TYPES}")
@@ -738,6 +741,8 @@ def make_trainer(config_name: str, mparams: dict, dataset_type: str) -> RecsysTr
             ),
             ads_head_masking=mparams.get("ads_head_masking", False),
             ads_pixel_head_masking=mparams.get("ads_pixel_head_masking", False),
+            ads_late_window_heads=mparams.get("ads_late_window_heads", False),
+            serve_late_window_composed=mparams.get("serve_late_window_composed", False),
             enable_dpa_input_embedding=mparams.get("enable_dpa_input_embedding", False),
             attend_padded_history=mparams.get("attend_padded_history", False),
             pad_candidates_to_128=mparams.get("pad_candidates_to_128", True),

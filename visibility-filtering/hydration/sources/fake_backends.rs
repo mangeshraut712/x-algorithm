@@ -5,17 +5,12 @@ use crate::clients::{trusted_friends_client, user_devices_client, user_location_
 use crate::hydration::fetcher::FetcherId;
 use crate::hydration::inventory::Source;
 use crate::models::NsfwFeature;
-use crate::safety_label_source::decode::tests::{cached_value_not_found, mval, raw_label};
-use crate::safety_label_source::metrics::LabelMetrics;
-use crate::safety_label_source::mh_client::{FetchResult, ManhattanLabelFetcher};
-use crate::safety_label_source::remote::{cache_key, CacheRead, RemoteSource};
 use std::fmt;
 use std::num::NonZeroU64;
 use thrift::protocol::TType;
 use tonic::{Request, Response, Status};
 use tower::util::BoxCloneSyncService;
 use tower::ServiceExt;
-use xai_cache::{KVCacheError, Key, Value};
 use xai_core_entities::entities::{
     ApiCounts, CashtagAttachments, ConversationControlArm, EditControl, EscherbirdEntityAnnotation,
     ExclusiveTweetControl, GizmoduckAccount, GizmoduckUserResult, MediaEntities, NoteTweet,
@@ -26,7 +21,7 @@ use xai_core_entities::gizmoduck_client::{
     GizmoduckClient, LookupContext, MockGizmoduckClient, UserFields, ViewerData,
 };
 use xai_core_entities::tweet_entity_service_client::{MockTESClient, TESClient};
-use xai_manhattan::ManhattanError;
+use xai_safety_label_source::testing::FakeLabels;
 use xai_strato::strato_proto::rpc_server::{Rpc, RpcServer};
 use xai_strato::strato_proto::{result, Call3, Issue3, ResultList};
 use xai_strato::StratoGrpc;
@@ -324,34 +319,6 @@ impl SocialgraphClient for Fake {
     }
 }
 
-#[tonic::async_trait]
-impl CacheRead for Fake {
-    async fn multi_get(&self, keys: &[Key]) -> HashMap<Key, Result<Option<Value>, KVCacheError>> {
-        let not_found = cache_key(MISSING).unwrap();
-        let value = |key: &Key| (*key == not_found).then(cached_value_not_found);
-        keys.iter()
-            .map(|key| (key.clone(), Ok(value(key))))
-            .collect()
-    }
-}
-
-#[tonic::async_trait]
-impl ManhattanLabelFetcher for Fake {
-    async fn fetch_labels(&self, tweet_ids: &[i64]) -> Result<Vec<FetchResult>, ManhattanError> {
-        let label = SafetyLabel {
-            applicable_users: Some(vec![PerspectivalUser {
-                user_id: LABELED.cast_signed(),
-            }]),
-            ..Default::default()
-        };
-        let result = |id: i64| match id.cast_unsigned() {
-            FAILED => Err(ManhattanError::NativeProtocol("fails".to_owned())),
-            _ => Ok(vec![raw_label(SafetyLabelType::SPAM, mval(&label))]),
-        };
-        Ok(tweet_ids.iter().map(|&id| result(id)).collect())
-    }
-}
-
 fn labels() -> vf_pb::SafetyLabelMap {
     let label = vf_pb::SafetyLabel {
         applicable_users: vec![LABELED.cast_signed()],
@@ -591,6 +558,12 @@ fn prod_sources() -> ProdSources {
         ..Default::default()
     };
     let fake = Arc::new(Fake);
+    let label = SafetyLabel {
+        applicable_users: Some(vec![PerspectivalUser {
+            user_id: LABELED.cast_signed(),
+        }]),
+        ..Default::default()
+    };
     ProdSources::new(Backends {
         tes: Arc::new(Tes(tes)),
         tweets: TweetSource {
@@ -599,19 +572,17 @@ fn prod_sources() -> ProdSources {
         gizmoduck: GizmoduckLookup::new(Arc::new(Gizmoduck(gizmoduck))),
         socialgraph: Arc::clone(&fake) as _,
         about_this_account: AboutThisAccountClient::new(strato()),
-        wingman: Arc::clone(&fake) as _,
+        wingman: fake,
         articles: ArticleClient::new(strato()),
         trusted_friends: TrustedFriendsClient::new(strato()),
         user_location: UserLocationClient::new(strato()),
-        safety_labels: Arc::new(SafetyLabelSource::new(
-            Arc::new(RemoteSource::new(
-                Arc::clone(&fake) as _,
-                fake,
-                LabelMetrics::default(),
-            )),
-            None,
-            LabelMetrics::default(),
-        )),
+        safety_labels: Arc::new(
+            FakeLabels::default()
+                .label(TWEET, SafetyLabelType::SPAM, label)
+                .not_found(MISSING)
+                .failing(FAILED)
+                .into_source(),
+        ),
         communities: CommunitySource {
             grpc_client: strato(),
         },

@@ -1,4 +1,4 @@
-// mirrored from config feature-switch defaults; last sync 2026-10-28T16:00:35Z
+// mirrored from config feature-switch defaults; last sync 2026-10-30T22:59:56Z
 use xai_feature_switches::param;
 
 param!(
@@ -344,6 +344,12 @@ param!(
     f64,
     "rust_home_mixer_page_decode_temperature",
     0.0
+);
+param!(
+    PageDecodeRewardHead,
+    u32,
+    "rust_home_mixer_page_decode_reward_head",
+    0
 );
 param!(
     EnablePageRlExploration,
@@ -932,7 +938,7 @@ param!(
     AdsBlenderType,
     String,
     "rust_home_mixer_ads_blender",
-    "multi_risk"
+    "slot_spread"
 );
 
 param!(
@@ -1231,10 +1237,16 @@ param!(
     0.72
 );
 param!(
+    VideoCarouselEmbeddingVersion,
+    String,
+    "rust_home_mixer_video_carousel_embedding_version",
+    "v8_search_1"
+);
+param!(
     EnableVideoCarouselHighRiskFilter,
     bool,
     "rust_home_mixer_enable_video_carousel_high_risk_filter",
-    false
+    true
 );
 param!(
     EnableVideoCarouselCandidatesLogging,

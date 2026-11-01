@@ -19,7 +19,6 @@ use crate::hydration::fetcher::Owner;
 use crate::hydration::tweet_source::{decode_tweet, TweetSource};
 use crate::models::{ArticleLifecycle, CommunityModeration, PureCore, TweetFeatures};
 use crate::post_card::{PostCard, PostCards};
-use crate::safety_label_source::SafetyLabelSource;
 use futures::future::join;
 use rustc_hash::FxHashMap;
 use std::collections::{HashMap, HashSet};
@@ -31,6 +30,7 @@ use wingman_client::Exists;
 use xai_core_entities::entities::{ConversationControl, GizmoduckUser, QuotedTweet};
 use xai_core_entities::gizmoduck_client::QueryFields;
 use xai_core_entities::tweet_entity_service_client::TESClient;
+use xai_safety_label_source::SafetyLabelSource;
 use xai_strato::Bytes;
 use xai_visibility_filtering_proto as vf_pb;
 

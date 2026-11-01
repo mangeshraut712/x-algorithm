@@ -21,6 +21,7 @@ const PY_NUM_CHANNELS: usize = 2;
 const CACHE_MAX_BYTES: u64 = 256 * 1024 * 1024;
 const CACHE_TTL: Duration = Duration::from_secs(6 * 3600);
 const CACHE_ENTRY_OVERHEAD_BYTES: u32 = 96;
+const CACHE_INSERT_QUEUE: usize = 4096;
 
 lazy_static! {
     static ref SID_LOOKUP_LATENCY_SECS: HistogramVec = register_histogram_vec!(
@@ -55,6 +56,7 @@ pub struct SemanticIdClient {
     next: AtomicUsize,
     sid_num_levels: usize,
     cache: moka::future::Cache<i64, Arc<Vec<i32>>>,
+    cache_inserts: tokio::sync::mpsc::Sender<Vec<(i64, Arc<Vec<i32>>)>>,
 }
 
 impl SemanticIdClient {
@@ -69,17 +71,28 @@ impl SemanticIdClient {
         let clients = (0..num_channels.max(1))
             .map(|_| SidLookupServiceClient::new(endpoint.connect_lazy()))
             .collect();
+        let cache: moka::future::Cache<i64, Arc<Vec<i32>>> = moka::future::Cache::builder()
+            .weigher(|_k: &i64, v: &Arc<Vec<i32>>| {
+                CACHE_ENTRY_OVERHEAD_BYTES + (v.len() * std::mem::size_of::<i32>()) as u32
+            })
+            .max_capacity(CACHE_MAX_BYTES)
+            .time_to_live(CACHE_TTL)
+            .build();
+        let (cache_inserts, mut pending) = tokio::sync::mpsc::channel(CACHE_INSERT_QUEUE);
+        let inserter = cache.clone();
+        tokio::spawn(async move {
+            while let Some(batch) = pending.recv().await {
+                for (id, codes) in batch {
+                    inserter.insert(id, codes).await;
+                }
+            }
+        });
         Self {
             clients,
             next: AtomicUsize::new(0),
             sid_num_levels,
-            cache: moka::future::Cache::builder()
-                .weigher(|_k: &i64, v: &Arc<Vec<i32>>| {
-                    CACHE_ENTRY_OVERHEAD_BYTES + (v.len() * std::mem::size_of::<i32>()) as u32
-                })
-                .max_capacity(CACHE_MAX_BYTES)
-                .time_to_live(CACHE_TTL)
-                .build(),
+            cache,
+            cache_inserts,
         }
     }
 
@@ -177,10 +190,16 @@ impl SemanticIdClient {
 
     async fn fetch(&self, post_ids: &[i64]) -> HashMap<i64, Vec<i32>> {
         let fetched = self.lookup(post_ids).await;
-        for (id, codes) in &fetched {
-            if codes.first().is_some_and(|c| *c >= 0) {
-                self.cache.insert(*id, Arc::new(codes.clone())).await;
-            }
+        let found: Vec<_> = fetched
+            .iter()
+            .filter(|(_, codes)| codes.first().is_some_and(|c| *c >= 0))
+            .map(|(id, codes)| (*id, Arc::new(codes.clone())))
+            .collect();
+        let n = found.len();
+        if n > 0 && self.cache_inserts.try_send(found).is_err() {
+            SID_CACHE_COUNT
+                .with_label_values(&["insert_dropped"])
+                .inc_by(n as f64);
         }
         fetched
     }
@@ -254,5 +273,28 @@ impl PySemanticIdClient {
             endpoint,
             sid_num_levels,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn queued_inserts_reach_the_cache() {
+        let client = SemanticIdClient::new("http://127.0.0.1:1", 2, 1);
+        client
+            .cache_inserts
+            .send(vec![(7, Arc::new(vec![1, 2]))])
+            .await
+            .unwrap();
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while client.cache.get(&7).await.is_none() {
+            assert!(
+                Instant::now() < deadline,
+                "queued insert never reached the cache"
+            );
+            tokio::time::sleep(Duration::from_millis(1)).await;
+        }
     }
 }

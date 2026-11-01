@@ -177,6 +177,7 @@ OPTIONAL_COLUMNS: list[str] = [
     "auxValueAddToCartValidSeq",
     "auxValueAddToCartBaselineMeanUsdSeq",
     "conversionKeepBits",
+    "earlyActionNameMultiHotSeqSeq",
     "conversionEligibleTypesSeq",
     "conversionDelayMsSeq",
     "conversionDelayMsSeq_KEY",

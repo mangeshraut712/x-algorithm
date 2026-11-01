@@ -17,6 +17,12 @@ from numpy import typing as npt
 
 from xrex.data.recsys import history_id_lists, id_list_features, reply_features
 from xrex.data.recsys.ads_head_masking import build_trained_candidate_mask
+from xrex.data.recsys.ads_late_window import (
+    ADS_LATE_ENGAGEMENT_COUNTERPART_INDICES,
+    EARLY_ACTIONS_COLUMN,
+    LATE_WINDOW_STREAM_ID,
+    apply_late_engagement_labels,
+)
 from xrex.data.recsys.ads_pixel_head_masking import build_head_eligible_mask
 from xrex.data.recsys.array_allocator import ArrayAllocator
 from xrex.data.recsys.constants import (
@@ -784,6 +790,7 @@ def from_record_batch(
     reply_parent_mode: bool = False,
     ads_head_masking: bool = False,
     ads_pixel_head_masking: bool = False,
+    ads_late_window_heads: bool = False,
     page_records: bool = False,
     id_list_specs: typing.Sequence[id_list_features.IdListFeatureSpec] | None = None,
     history_url_embedding_dim: int = 0,
@@ -925,6 +932,22 @@ def from_record_batch(
         if "sample_source" in record_batch.schema.names
         else alloc.zeros((batch_size, 1), dtype=np.int8)
     )
+    if ads_late_window_heads:
+        early_counterparts = None
+        late_rows = np.asarray(sample_source).reshape(-1) == LATE_WINDOW_STREAM_ID
+        if late_rows.any() and EARLY_ACTIONS_COLUMN in record_batch.schema.names:
+            early_col = record_batch.column(EARLY_ACTIONS_COLUMN)
+            take = late_rows & early_col.is_valid().to_numpy(zero_copy_only=False)
+            early_counterparts = actions[:, :, ADS_LATE_ENGAGEMENT_COUNTERPART_INDICES]
+            if take.any():
+                flat_early = _nested_list_values(early_col.filter(pa.array(take)))
+                early_counterparts[take] = (
+                    flat_early.fill_null(False)
+                    .to_numpy(zero_copy_only=False)
+                    .reshape(-1, *actions.shape[1:])[:, :, ADS_LATE_ENGAGEMENT_COUNTERPART_INDICES]
+                    .astype(np.bool_)
+                )
+        apply_late_engagement_labels(actions, early_counterparts, sample_source, new_event_mask)
 
     post_creation_ts_sec = (((tweet_ids >> 22) + TWITTER_EPOCH_MS) // 1000).astype(np.int32)
     post_creation_ts_sec = np.where(tweet_ids == 0, 0, post_creation_ts_sec)
@@ -1568,6 +1591,7 @@ def from_record_batch(
         sample_source,
         candidate_trained_actions_bits,
         ads_head_masking=ads_head_masking,
+        ads_late_window_heads=ads_late_window_heads,
     )
     candidate_head_eligible: dict[str, np.ndarray] = {}
     if ads_pixel_head_masking:

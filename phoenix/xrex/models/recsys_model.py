@@ -1209,6 +1209,10 @@ class RecsysAggregatedModelConfig(Config):
             )
         if self.ads_pixel_head_masking and not self.ads_head_masking:
             raise ValueError("ads_pixel_head_masking requires ads_head_masking")
+        if self.ads_late_window_heads and not self.ads_head_masking:
+            raise ValueError("ads_late_window_heads requires ads_head_masking")
+        if self.serve_late_window_composed and not self.ads_late_window_heads:
+            raise ValueError("serve_late_window_composed requires ads_late_window_heads")
         if self.ads_pixel_head_masking and self.use_seqpack:
             raise ValueError("ads_pixel_head_masking is not supported with use_seqpack")
         if self.metric_own_slice and not self.ads_head_masking:
@@ -1308,6 +1312,9 @@ class RecsysAggregatedModelConfig(Config):
     ads_head_masking: bool = False
 
     ads_pixel_head_masking: bool = False
+
+    ads_late_window_heads: bool = False
+    serve_late_window_composed: bool = False
 
     mact_in_app_loss_weight: float = 1.0
 
